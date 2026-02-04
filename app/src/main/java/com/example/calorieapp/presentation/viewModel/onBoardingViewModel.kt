@@ -5,13 +5,23 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.calorieapp.domain.entities.UserProfile
+import com.example.calorieapp.domain.useCases.SaveUserAndCalculateGoalsUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class OnBoardingViewModel : ViewModel() {
+@HiltViewModel
+class OnBoardingViewModel @Inject constructor (
+    private val saveUserUseCase : SaveUserAndCalculateGoalsUseCase
+): ViewModel() {
     var currentStep by mutableIntStateOf(0)
         private set
 
     var gender by mutableStateOf("Male")
     var age by mutableIntStateOf(25)
+    
     var goal by mutableStateOf("Maintain")
     var feetForHeight by mutableIntStateOf(6)
     var inchesForHeight by mutableIntStateOf(0)
@@ -21,9 +31,31 @@ class OnBoardingViewModel : ViewModel() {
     val totalSteps = 5
 
     fun onNext() {
-        if(currentStep < totalSteps - 1 ) currentStep++
+        if(currentStep < totalSteps - 1 ) {
+            currentStep++
+        }else{
+            saveAndFinish()
+        }
     }
     fun onBack() {
         if(currentStep > 0 ) currentStep--
+    }
+
+    private fun saveAndFinish(){
+        viewModelScope.launch {
+            val user = UserProfile(
+                gender = gender,
+                age = age,
+                weight = weight.toString(),
+                heightFeet = feetForHeight,
+                heightInches = inchesForHeight,
+                activityLevel = activityLevel,
+                goal = goal
+            )
+            val calculatedGoals = saveUserUseCase(user)
+
+            println("CALCULATED CALORIES: ${calculatedGoals.calories}")
+            println("PROTEIN: ${calculatedGoals.protein}g")
+        }
     }
 }

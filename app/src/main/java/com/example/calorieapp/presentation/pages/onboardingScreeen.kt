@@ -28,11 +28,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.calorieapp.presentation.viewModel.OnBoardingViewModel
 
 @Composable
-fun OnBoardingScreen(viewModel: OnBoardingViewModel = viewModel()){
+fun OnBoardingScreen(viewModel: OnBoardingViewModel = hiltViewModel()){
 
     var targetProgress = (viewModel.currentStep + 1 ).toFloat() / viewModel.totalSteps
 
