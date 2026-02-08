@@ -27,7 +27,7 @@ fun dashBoardScreen(viewModel: OnBoardingViewModel = hiltViewModel()){
         Box(
             modifier = Modifier.padding(paddingValues)
         ){
-            Text(viewModel.)
+            Text("viewModel.")
         }
     }
 }

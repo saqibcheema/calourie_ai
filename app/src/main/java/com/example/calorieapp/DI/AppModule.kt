@@ -1,8 +1,7 @@
 package com.example.calorieapp.DI
 
-import android.app.Application
+import android.content.Context
 import androidx.room.Room
-import androidx.room.RoomDatabase
 import com.example.calorieapp.data.DataSource.local.AppDatabase
 import com.example.calorieapp.data.DataSource.local.UserDao
 import com.example.calorieapp.data.repository.UserRepositoryImplementation
@@ -10,6 +9,7 @@ import com.example.calorieapp.domain.repository.UserRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -20,10 +20,10 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideDatabase(app: Application) : RoomDatabase {
+    fun provideDatabase(@ApplicationContext context: Context) : AppDatabase {
         return Room.databaseBuilder(
-            app,
-            RoomDatabase::class.java,
+            context,
+            AppDatabase::class.java,
             "calorie_app_db"
         ).build()
     }

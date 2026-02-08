@@ -22,7 +22,7 @@ fun ActivityLevel(
     onContinue: () -> Unit
 ){
     var activityList = listOf<String>("No Exercise","Low Activity","Moderate Activity","High Activity")
-    var daysForActivityList = listOf<String>("1-3 days","3-5 days","5-7 days")
+    var daysForActivityList = listOf<String?>(null,"1-3 days","3-5 days","5-7 days")
     Column (
         modifier = Modifier
             .fillMaxSize()

@@ -14,5 +14,6 @@ data class UserEntity(
     val heightFeet: Int,
     val heightInches: Int,
     val activityLevel: String,
-    val goal: String
+    val goal: String,
+
 )
