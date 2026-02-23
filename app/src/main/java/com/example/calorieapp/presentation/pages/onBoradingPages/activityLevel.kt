@@ -1,4 +1,4 @@
-package com.example.calorieapp.presentation.pages
+package com.example.calorieapp.presentation.pages.onBoradingPages
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -16,36 +16,38 @@ import com.example.calorieapp.presentation.components.ContinueButton
 import com.example.calorieapp.presentation.components.CustomOptionButton
 
 @Composable
-fun GoalScreen(
-    selectedGoal: String,
-    onGoalSelected: (String) -> Unit,
+fun ActivityLevel(
+    selectedActivity: String,
+    onActivitySelected: (String) -> Unit,
     onContinue: () -> Unit
 ){
-    var activityLevelList = listOf<String>("Lose Weight","Maintain","Gain Weight")
+    var activityList = listOf<String>("No Exercise","Low Activity","Moderate Activity","High Activity")
+    var daysForActivityList = listOf<String?>(null,"1-3 days","3-5 days","5-7 days")
     Column (
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 30.dp)
     ){
         Text(
-            text ="What is your goal?",
+            text ="Choose your Gender",
             color = MaterialTheme.colorScheme.primary,
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold
         )
         Spacer(Modifier.height(5.dp))
         Text(
-                text ="This helps us generate a plan for your calorie intake.",
+            text ="This will be used to calibrate your custom plan",
             color = MaterialTheme.colorScheme.secondary,
             fontSize = 18.sp,
         )
         Spacer(modifier = Modifier.weight(1f))
-        activityLevelList.forEach {
+        activityList.forEach {
             CustomOptionButton(
                 text = it,
-                isSelected = it == selectedGoal,
+                subText = daysForActivityList[activityList.indexOf(it)],
+                isSelected = it == selectedActivity,
                 onClick = {
-                    onGoalSelected(it)
+                    onActivitySelected(it)
                 }
             )
         }

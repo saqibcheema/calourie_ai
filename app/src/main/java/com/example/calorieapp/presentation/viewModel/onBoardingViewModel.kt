@@ -30,7 +30,7 @@ class OnBoardingViewModel @Inject constructor (
 
     val totalSteps = 5
 
-    fun onNext() {
+    suspend fun onNext() {
         if(currentStep < totalSteps - 1 ) {
             currentStep++
         }else{
@@ -41,7 +41,7 @@ class OnBoardingViewModel @Inject constructor (
         if(currentStep > 0 ) currentStep--
     }
 
-    private fun saveAndFinish(){
+    private suspend fun saveAndFinish(){
         viewModelScope.launch {
             val user = UserProfile(
                 gender = gender,
@@ -52,10 +52,7 @@ class OnBoardingViewModel @Inject constructor (
                 activityLevel = activityLevel,
                 goal = goal
             )
-            val calculatedGoals = saveUserUseCase(user)
-
-            println("CALCULATED CALORIES: ${calculatedGoals.calories}")
-            println("PROTEIN: ${calculatedGoals.protein}g")
+            saveUserUseCase(user)
         }
     }
 }

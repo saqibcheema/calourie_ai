@@ -1,4 +1,4 @@
-package com.example.calorieapp.presentation.pages
+package com.example.calorieapp.presentation.pages.onBoradingPages
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer

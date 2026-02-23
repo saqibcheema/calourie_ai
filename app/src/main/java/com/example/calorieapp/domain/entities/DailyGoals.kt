@@ -4,5 +4,5 @@ data class DailyGoals (
     val calories: Int,
     val carbs: Int,
     val protein: Int,
-    val fat: Int
+    val fats: Int
 )

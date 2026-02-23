@@ -8,11 +8,8 @@ import javax.inject.Inject
 class SaveUserAndCalculateGoalsUseCase @Inject constructor (
     private val repository: UserRepository
 ){
-    suspend operator fun invoke(user: UserProfile): DailyGoals{
-
-        repository.saveUser(user)
-
+    suspend operator fun invoke(user: UserProfile){
         val dailyGoals = CalculationUtils.calculateGoals(user)
-        return dailyGoals
+        repository.saveUser(user, dailyGoals)
     }
 }

@@ -1,5 +1,6 @@
 package com.example.calorieapp.data.Models
 
+import com.example.calorieapp.domain.entities.DailyGoals
 import com.example.calorieapp.domain.entities.UserProfile
 
 fun UserProfile.toUserEntity(): UserEntity {
@@ -23,5 +24,24 @@ fun UserEntity.toUserProfile(): UserProfile{
         heightInches = this.heightInches,
         activityLevel = this.activityLevel,
         goal = this.goal
+    )
+}
+
+fun DailyGoals.toGoalsEntity(currentUserId : Int = 0): GoalsEntity{
+    return GoalsEntity(
+        userId = currentUserId,
+        calories = this.calories,
+        carbs = this.carbs,
+        protein = this.protein,
+        fats = this.fats
+    )
+}
+
+fun GoalsEntity.toDailyGoals(): DailyGoals{
+    return DailyGoals(
+        calories = this.calories,
+        carbs = this.carbs,
+        protein = this.protein,
+        fats = this.fats
     )
 }

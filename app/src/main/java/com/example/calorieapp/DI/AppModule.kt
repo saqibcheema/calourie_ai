@@ -36,7 +36,9 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideUserRepository(dao: UserDao) : UserRepository{
-        return UserRepositoryImplementation(dao)
+    fun provideUserRepository(
+        userImpl : UserRepositoryImplementation
+    ) : UserRepository{
+        return userImpl
     }
 }

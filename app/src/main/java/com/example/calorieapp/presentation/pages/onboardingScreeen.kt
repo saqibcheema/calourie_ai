@@ -29,12 +29,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.calorieapp.presentation.pages.onBoradingPages.ActivityLevel
+import com.example.calorieapp.presentation.pages.onBoradingPages.AgeScreen
+import com.example.calorieapp.presentation.pages.onBoradingPages.GenderScreen
+import com.example.calorieapp.presentation.pages.onBoradingPages.GoalScreen
+import com.example.calorieapp.presentation.pages.onBoradingPages.HeightAndWeight
 import com.example.calorieapp.presentation.viewModel.OnBoardingViewModel
 
 @Composable
 fun OnBoardingScreen(viewModel: OnBoardingViewModel = hiltViewModel()){
 
-    var targetProgress = (viewModel.currentStep + 1 ).toFloat() / viewModel.totalSteps
+    val targetProgress = (viewModel.currentStep + 1 ).toFloat() / viewModel.totalSteps
 
     val animatedProgress by animateFloatAsState(
         targetValue = targetProgress,
