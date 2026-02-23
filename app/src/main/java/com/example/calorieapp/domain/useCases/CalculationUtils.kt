@@ -48,7 +48,7 @@ object CalculationUtils {
             calories = targetCalories,
             carbs = carbs,
             protein = proteinGram,
-            fat = fatGram
+            fats = fatGram
         )
     }
 }

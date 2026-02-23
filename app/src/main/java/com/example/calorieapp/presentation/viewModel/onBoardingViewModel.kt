@@ -30,11 +30,13 @@ class OnBoardingViewModel @Inject constructor (
 
     val totalSteps = 5
 
-    suspend fun onNext() {
+     fun onNext() {
         if(currentStep < totalSteps - 1 ) {
             currentStep++
         }else{
-            saveAndFinish()
+            viewModelScope.launch {
+                saveAndFinish()
+            }
         }
     }
     fun onBack() {
