@@ -37,7 +37,10 @@ import com.example.calorieapp.presentation.pages.onBoradingPages.HeightAndWeight
 import com.example.calorieapp.presentation.viewModel.OnBoardingViewModel
 
 @Composable
-fun OnBoardingScreen(viewModel: OnBoardingViewModel = hiltViewModel()){
+fun OnBoardingScreen(
+    viewModel: OnBoardingViewModel = hiltViewModel(),
+    onNavigateToDashboard : () -> Unit
+){
 
     val targetProgress = (viewModel.currentStep + 1 ).toFloat() / viewModel.totalSteps
 
@@ -152,7 +155,7 @@ fun OnBoardingScreen(viewModel: OnBoardingViewModel = hiltViewModel()){
                             viewModel.goal = it
                         },
                         onContinue = {
-                            viewModel.onNext()
+                            viewModel.onNext(onNavigateToDashboard)
                         },
                     )
                 }
