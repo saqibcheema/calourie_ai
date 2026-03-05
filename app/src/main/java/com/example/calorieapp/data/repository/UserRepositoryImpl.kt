@@ -32,4 +32,8 @@ class UserRepositoryImplementation @Inject constructor(
             entity?.toDailyGoals()
         }
     }
+
+    override fun checkUserSession(): Flow<Boolean> {
+        return dao.getUser().map { it != null }
+    }
 }

@@ -4,17 +4,19 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.calorieapp.presentation.pages.DashBoardScreen
+import com.example.calorieapp.presentation.pages.DashboardScreen
 import com.example.calorieapp.presentation.pages.OnBoardingScreen
 
 
 @Composable
-fun CalorieAppNavigation(){
+fun CalorieAppNavigation(
+    startDestination : Any
+){
     val navController = rememberNavController()
 
     NavHost(
         navController = navController,
-        startDestination = Dest.OnBoarding
+        startDestination = startDestination
     ){
         composable<Dest.OnBoarding>{
             OnBoardingScreen(
@@ -28,7 +30,9 @@ fun CalorieAppNavigation(){
             )
         }
         composable<Dest.Dashboard>{
-            DashBoardScreen()
+            DashboardScreen()
         }
     }
 }
+
+

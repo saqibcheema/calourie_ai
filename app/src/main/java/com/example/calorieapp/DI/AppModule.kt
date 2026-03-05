@@ -3,8 +3,11 @@ package com.example.calorieapp.DI
 import android.content.Context
 import androidx.room.Room
 import com.example.calorieapp.data.DataSource.local.AppDatabase
+import com.example.calorieapp.data.DataSource.local.MealDao
 import com.example.calorieapp.data.DataSource.local.UserDao
+import com.example.calorieapp.data.repository.MealRepositoryImpl
 import com.example.calorieapp.data.repository.UserRepositoryImplementation
+import com.example.calorieapp.domain.repository.MealRepository
 import com.example.calorieapp.domain.repository.UserRepository
 import dagger.Module
 import dagger.Provides
@@ -25,7 +28,10 @@ object AppModule {
             context,
             AppDatabase::class.java,
             "calorie_app_db"
-        ).build()
+        )
+            .fallbackToDestructiveMigrationFrom()
+            .fallbackToDestructiveMigrationOnDowngrade()
+            .build()
     }
 
     @Provides
@@ -40,5 +46,17 @@ object AppModule {
         userImpl : UserRepositoryImplementation
     ) : UserRepository{
         return userImpl
+    }
+
+    @Provides
+    @Singleton
+    fun provideMealDao(db: AppDatabase): MealDao {
+        return db.MealDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideMealRepository(repoImpl: MealRepositoryImpl) : MealRepository{
+        return repoImpl
     }
 }
