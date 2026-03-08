@@ -2,39 +2,31 @@ package com.example.calorieapp.presentation.pages
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocalFireDepartment
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ProgressIndicatorDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.calorieapp.presentation.pages.DashboardPages.CaloriesCard
 import com.example.calorieapp.presentation.pages.DashboardPages.DateSelectorRow
 import com.example.calorieapp.presentation.pages.DashboardPages.MacrosRow
 import com.example.calorieapp.presentation.pages.DashboardPages.RecentUploadPlaceholder
@@ -83,121 +75,61 @@ fun DashboardScreen(
     )
 
     // Main UI Layout
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundBrush) // Gradient applied
-            .padding(horizontal = 20.dp)
-    ) {
-        Spacer(modifier = Modifier.height(40.dp)) // Status bar ki jagah
-
-        TopHeader()
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        DateSelectorRow()
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        CaloriesCard(leftCals, calProgress)
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        MacrosRow(
-            leftProtein, proteinProgress,
-            leftCarbs, carbsProgress,
-            leftFats, fatsProgress
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Text(
-            text = "Recently uploaded",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        RecentUploadPlaceholder()
-    }
-}
-
-
-
-
-
-
-@Composable
-fun CaloriesCard(leftCals: Int, progress: Float) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(24.dp)
-    ) {
-        Row(
+    Scaffold (
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { /* TODO: Add Meal logic */ },
+                containerColor = Color.Black,
+                contentColor = Color.White,
+                shape = CircleShape,
+                modifier = Modifier.size(64.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add Meal", modifier = Modifier.size(32.dp))
+            }
+        },
+        floatingActionButtonPosition = FabPosition.End,
+        containerColor = MaterialTheme.colorScheme.background
+    ){innerPadding->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .background(backgroundBrush)// Gradient applied
+                .padding(innerPadding)
+                .padding(horizontal = 20.dp)
         ) {
-            // Text Section
-            Column {
-                Text(
-                    text = leftCals.toString(),
-                    fontSize = 48.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color.Black
-                )
-                Text(
-                    text = "Calories left",
-                    color = Color.Gray,
-                    fontSize = 14.sp
-                )
-            }
+            Spacer(modifier = Modifier.height(40.dp)) // Status bar ki jagah
 
-            // Circular Progress Section
-            Box(contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(
-                    progress = {
-                        1f // Track background
-                    },
-                    modifier = Modifier.size(100.dp),
-                    color = Color(0xFFF0F0F0),
-                    strokeWidth = 12.dp,
-                    trackColor = ProgressIndicatorDefaults.circularIndeterminateTrackColor,
-                )
-                CircularProgressIndicator(
-                    progress = {
-                        progress // Actual progress
-                    },
-                    modifier = Modifier.size(100.dp),
-                    color = Color.Black,
-                    strokeWidth = 12.dp,
-                    trackColor = ProgressIndicatorDefaults.circularIndeterminateTrackColor,
-                    strokeCap = StrokeCap.Round,
-                )
-                // Center Fire Icon
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(Color(0xFFF5F5F5), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.LocalFireDepartment,
-                        contentDescription = "Calories",
-                        tint = Color.Black,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
+            TopHeader()
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            DateSelectorRow()
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            CaloriesCard(leftCals, calProgress)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            MacrosRow(
+                leftProtein, proteinProgress,
+                leftCarbs, carbsProgress,
+                leftFats, fatsProgress
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Text(
+                text = "Recently uploaded",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            RecentUploadPlaceholder()
         }
+
     }
 }
-
-
-
