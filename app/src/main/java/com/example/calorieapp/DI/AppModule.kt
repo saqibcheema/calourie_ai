@@ -3,11 +3,11 @@ package com.example.calorieapp.DI
 import android.content.Context
 import androidx.room.Room
 import com.example.calorieapp.data.DataSource.local.AppDatabase
-import com.example.calorieapp.data.DataSource.local.MealDao
+import com.example.calorieapp.data.DataSource.local.ProductDao
 import com.example.calorieapp.data.DataSource.local.UserDao
-import com.example.calorieapp.data.repository.MealRepositoryImpl
+import com.example.calorieapp.data.repository.BarcodeRepositoryImpl
 import com.example.calorieapp.data.repository.UserRepositoryImplementation
-import com.example.calorieapp.domain.repository.MealRepository
+import com.example.calorieapp.domain.repository.BarcodeRepository
 import com.example.calorieapp.domain.repository.UserRepository
 import dagger.Module
 import dagger.Provides
@@ -50,13 +50,15 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideMealDao(db: AppDatabase): MealDao {
-        return db.MealDao()
+    fun provideProductDao(db: AppDatabase)  : ProductDao{
+        return db.ProductDao()
     }
 
     @Provides
     @Singleton
-    fun provideMealRepository(repoImpl: MealRepositoryImpl) : MealRepository{
-        return repoImpl
+    fun provideBarcodeRepository(
+        barcodeImpl : BarcodeRepositoryImpl
+    ) : BarcodeRepository {
+        return barcodeImpl
     }
 }

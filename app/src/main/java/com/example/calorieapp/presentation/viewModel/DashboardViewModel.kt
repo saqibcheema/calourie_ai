@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.calorieapp.domain.entities.DailyGoals
-import com.example.calorieapp.domain.entities.DailySummary
 import com.example.calorieapp.domain.useCases.GetDailySummaryUseCase
 import com.example.calorieapp.domain.useCases.GetGoalsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -48,6 +48,19 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.1")
     val nav_version = "2.9.7"
 
+    // 🆕 CameraX for barcode scanning
+    implementation("androidx.camera:camera-camera2:1.3.0")
+    implementation("androidx.camera:camera-lifecycle:1.3.0")
+    implementation("androidx.camera:camera-view:1.3.0")
+
+    // 🆕 ML Kit Barcode Scanning
+    implementation("com.google.mlkit:barcode-scanning:17.2.0")
+
+    // 🆕 Retrofit for API calls
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.google.code.gson:gson:2.10.1")
+
     // Jetpack Compose integration
     implementation("androidx.navigation:navigation-compose:$nav_version")
     // JSON serialization library, works with the Kotlin serialization plugin
