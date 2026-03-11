@@ -2,6 +2,7 @@ package com.example.calorieapp.data.Models
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "goals_table",
@@ -12,7 +13,8 @@ import androidx.room.PrimaryKey
             childColumns = ["userId"],
             onDelete = ForeignKey.CASCADE
         )
-    ]
+    ],
+    indices = [Index("userId")]
     )
 data class GoalsEntity (
     @PrimaryKey(autoGenerate = true)

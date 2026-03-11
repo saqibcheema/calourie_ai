@@ -33,7 +33,7 @@ interface ProductDao {
         SUM(fat) as totalFats, 
         SUM(carbs) as totalCarbs 
     FROM scanned_products 
-    WHERE isDeleted = 0 AND date(scannedAt) = date('now')
+    WHERE isDeleted = 0 AND date(scannedAt) = :currentDate
 """)
-    suspend fun getTodayTotalMacros(): DailyMacrosSummary?
+    fun getTodayTotalMacros(currentDate: String): Flow<DailyMacrosSummary?>
 }

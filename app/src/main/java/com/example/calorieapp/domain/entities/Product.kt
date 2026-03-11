@@ -4,7 +4,7 @@ import java.util.Date
 
 data class Product(
     val barcode: String,
-    val productName: String,
+    val productName: String?,
     val brand: String?,
     val imageUrl: String?,
     val calories: Double,

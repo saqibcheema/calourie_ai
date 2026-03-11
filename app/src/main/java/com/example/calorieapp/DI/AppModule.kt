@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.example.calorieapp.data.DataSource.local.AppDatabase
 import com.example.calorieapp.data.DataSource.local.ProductDao
 import com.example.calorieapp.data.DataSource.local.UserDao
+import com.example.calorieapp.data.DataSource.remote.BarcodeApiService
 import com.example.calorieapp.data.repository.BarcodeRepositoryImpl
 import com.example.calorieapp.data.repository.UserRepositoryImplementation
 import com.example.calorieapp.domain.repository.BarcodeRepository
@@ -14,6 +15,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
 
@@ -29,8 +32,7 @@ object AppModule {
             AppDatabase::class.java,
             "calorie_app_db"
         )
-            .fallbackToDestructiveMigrationFrom()
-            .fallbackToDestructiveMigrationOnDowngrade()
+            .fallbackToDestructiveMigration()
             .build()
     }
 
@@ -60,5 +62,15 @@ object AppModule {
         barcodeImpl : BarcodeRepositoryImpl
     ) : BarcodeRepository {
         return barcodeImpl
+    }
+
+    @Provides
+    @Singleton
+    fun provideBarcodeApi(): BarcodeApiService {
+        return Retrofit.Builder()
+            .baseUrl("https://world.openfoodfacts.org/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(BarcodeApiService::class.java)
     }
 }

@@ -81,7 +81,6 @@ fun BarcodeScannerView(
             }
         )
 
-        // Back button
         IconButton(
             onClick = onBackClick,
             modifier = Modifier

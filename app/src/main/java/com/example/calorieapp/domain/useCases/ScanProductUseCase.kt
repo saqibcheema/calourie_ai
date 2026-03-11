@@ -2,8 +2,9 @@ package com.example.calorieapp.domain.useCases
 
 import com.example.calorieapp.domain.entities.Product
 import com.example.calorieapp.domain.repository.BarcodeRepository
+import javax.inject.Inject
 
-class ScanProductUseCase(
+class ScanProductUseCase @Inject constructor(
     private val repository: BarcodeRepository
 ) {
     suspend operator fun invoke(barcode: String): Result<Product> {
