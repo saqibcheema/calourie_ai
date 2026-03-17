@@ -23,6 +23,13 @@ class BarcodeRepositoryImpl @Inject constructor(
     }
     override suspend fun scanProduct(barcode: String): Result<Product> {
         return try {
+            val localProduct = productDao.getProductByBarcode(barcode)
+            if (localProduct != null) {
+                val updatedProduct = localProduct.copy(scannedAt = java.util.Date(), isDeleted = false)
+                productDao.insertProduct(updatedProduct)
+                return Result.success(updatedProduct.toDomainProduct())
+            }
+
             val response = api.getProductByBarcode(barcode)
             if(response.status == 1 && response.product != null){
                 val product = response.product

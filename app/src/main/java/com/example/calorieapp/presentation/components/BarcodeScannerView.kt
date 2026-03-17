@@ -30,15 +30,15 @@ fun BarcodeScannerView(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val cameraProviderFuture = remember {
-        ProcessCameraProvider.getInstance(context)
-    }
+    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
-                val previewView = PreviewView(ctx)
+                  val previewView = PreviewView(ctx).apply {
+                    implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                }
                 val executor = ContextCompat.getMainExecutor(ctx)
 
                 cameraProviderFuture.addListener({
@@ -51,9 +51,7 @@ fun BarcodeScannerView(
                         }
 
                     val imageAnalysis = ImageAnalysis.Builder()
-                        .setBackpressureStrategy(
-                            ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
-                        )
+                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build()
                         .also { analysis ->
                             analysis.setAnalyzer(
@@ -78,6 +76,17 @@ fun BarcodeScannerView(
                 }, executor)
 
                 previewView
+            },
+            onRelease = {
+
+                if (cameraProviderFuture.isDone) {
+                    try {
+                        val cameraProvider = cameraProviderFuture.get()
+                        cameraProvider.unbindAll()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
             }
         )
 

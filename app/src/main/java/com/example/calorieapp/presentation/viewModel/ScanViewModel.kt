@@ -19,6 +19,7 @@ class ScanViewModel @Inject constructor(
     private val _state = MutableStateFlow(ScanState())
     val state: StateFlow<ScanState> = _state
 
+
     fun startScanning() {
         _state.update { it.copy(isScanning = true, error = null) }
     }
@@ -28,6 +29,8 @@ class ScanViewModel @Inject constructor(
     }
 
     fun onBarcodeDetected(barcode: String) {
+        if (_state.value.isLoading || _state.value.scannedProduct != null) return
+        
         viewModelScope.launch {
             _state.update {
                 it.copy(isScanning = false, isLoading = true)
