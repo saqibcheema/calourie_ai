@@ -2,12 +2,15 @@ package com.example.calorieapp.presentation.pages.DashboardPages
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,6 +25,8 @@ import com.example.calorieapp.ui.theme.*
 @Composable
 fun MealLoggedScreen(
     product: Product,
+    isAddedToMeal: Boolean,
+    onAddToMeal: () -> Unit,
     onBackToDashboard: () -> Unit,
     onLogAnotherMeal: () -> Unit,
     onBackClick: () -> Unit
@@ -29,6 +34,7 @@ fun MealLoggedScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 24.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -46,7 +52,7 @@ fun MealLoggedScreen(
             }
             Spacer(modifier = Modifier.weight(1f))
             Text(
-                text = "Meal Logged",
+                text = if (isAddedToMeal) "Meal Logged" else "Scanned Product",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -59,18 +65,25 @@ fun MealLoggedScreen(
         Box(
             modifier = Modifier
                 .size(100.dp)
-                .background(CalorieOrange.copy(alpha = 0.15f), shape = CircleShape),
+                .background(
+                    if (isAddedToMeal) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                    else MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                    shape = CircleShape
+                ),
             contentAlignment = Alignment.Center
         ) {
             Box(
                 modifier = Modifier
                     .size(70.dp)
-                    .background(CalorieOrange, shape = CircleShape),
+                    .background(
+                        if (isAddedToMeal) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
+                        shape = CircleShape
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = "Success",
+                    imageVector = if (isAddedToMeal) Icons.Default.Check else Icons.Default.QrCodeScanner,
+                    contentDescription = if (isAddedToMeal) "Success" else "Scanned",
                     tint = PureWhite,
                     modifier = Modifier.size(40.dp)
                 )
@@ -80,7 +93,8 @@ fun MealLoggedScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
-            text = "${product.productName} Logged!", // Real product name
+            text = if (isAddedToMeal) "${product.productName} Logged!"
+                   else "${product.productName}",
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center
@@ -89,7 +103,10 @@ fun MealLoggedScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = "Great job! Your meal has been analyzed\nand added to your daily intake.",
+            text = if (isAddedToMeal)
+                "Great job! Your meal has been analyzed\nand added to your daily intake."
+            else
+                "Review the nutrition info below.\nTap 'Add to Meal' to log it.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.secondary,
             textAlign = TextAlign.Center
@@ -97,7 +114,6 @@ fun MealLoggedScreen(
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        // Macro Summary Section
         Text(
             text = "MACRO SUMMARY",
             style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 1.5.sp),
@@ -106,7 +122,6 @@ fun MealLoggedScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 2x2 Macro Grid with REAL DATA
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -144,8 +159,27 @@ fun MealLoggedScreen(
                 )
             }
         }
+        Spacer(modifier = Modifier.height(40.dp))
+        if (!isAddedToMeal) {
+            Button(
+                onClick = onAddToMeal,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Text(
+                    text = "Add to Meal",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
 
-        Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(16.dp))
+        }
 
         Button(
             onClick = onBackToDashboard,

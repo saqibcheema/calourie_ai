@@ -26,6 +26,9 @@ interface ProductDao {
     @Query("DELETE FROM scanned_products WHERE isDeleted = 1")
     suspend fun deleteOldProducts()
 
+    @Query("SELECT * FROM scanned_products WHERE isDeleted = 0 AND date(scannedAt / 1000, 'unixepoch', 'localtime') = :currentDate ORDER BY scannedAt DESC")
+    fun getMealsByDate(currentDate: String): Flow<List<ProductEntity>>
+
     @Query("""
     SELECT 
         SUM(calories) as totalCalories, 
@@ -33,7 +36,7 @@ interface ProductDao {
         SUM(fat) as totalFats, 
         SUM(carbs) as totalCarbs 
     FROM scanned_products 
-    WHERE isDeleted = 0 AND date(scannedAt) = :currentDate
+    WHERE isDeleted = 0 AND date(scannedAt / 1000, 'unixepoch', 'localtime') = :currentDate
 """)
     fun getTodayTotalMacros(currentDate: String): Flow<DailyMacrosSummary?>
 }

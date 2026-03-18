@@ -5,6 +5,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -14,6 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -35,10 +39,13 @@ fun DashboardScreen(
 ) {
     val goals by viewModel.dailyGoals.collectAsStateWithLifecycle()
     val summary by viewModel.dailySummary.collectAsStateWithLifecycle()
+    val dailyMeals by viewModel.dailyMeals.collectAsStateWithLifecycle()
     val scanState by scanViewModel.state.collectAsState()
 
     var showNutritionSheet by remember { mutableStateOf(false) }
     var showScannerScreen by remember { mutableStateOf(false) }
+
+    val scrollState = rememberScrollState()
 
     val context = LocalContext.current
     var hasCameraPermission by remember {
@@ -85,6 +92,10 @@ fun DashboardScreen(
     if (scanState.scannedProduct != null) {
         MealLoggedScreen(
             product = scanState.scannedProduct!!,
+            isAddedToMeal = scanState.isAddedToMeal,
+            onAddToMeal = {
+                scanViewModel.addToMeal()
+            },
             onBackToDashboard = {
                 showScannerScreen = false
                 showNutritionSheet = false
@@ -145,10 +156,25 @@ fun DashboardScreen(
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-                    RecentUploadPlaceholder()
+                    
+                    if (dailyMeals.isEmpty()) {
+                        RecentUploadPlaceholder()
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            contentPadding = PaddingValues(bottom = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(dailyMeals) { meal ->
+                                MealItemRow(product = meal)
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
             }
-
 
             if (showNutritionSheet) {
                 val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)

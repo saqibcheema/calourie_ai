@@ -3,6 +3,7 @@ package com.example.calorieapp.presentation.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.calorieapp.domain.entities.Product
+import com.example.calorieapp.domain.useCases.AddMealUseCase
 import com.example.calorieapp.domain.useCases.ScanProductUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ScanViewModel @Inject constructor(
-    private val scanProductUseCase: ScanProductUseCase
+    private val scanProductUseCase: ScanProductUseCase,
+    private val addMealUseCase: AddMealUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ScanState())
@@ -42,6 +44,7 @@ class ScanViewModel @Inject constructor(
                         it.copy(
                             isLoading = false,
                             scannedProduct = product,
+                            isAddedToMeal = false,
                             error = null
                         )
                     }
@@ -57,8 +60,20 @@ class ScanViewModel @Inject constructor(
         }
     }
 
+    fun addToMeal() {
+        val product = _state.value.scannedProduct ?: return
+        viewModelScope.launch {
+            try {
+                addMealUseCase(product)
+                _state.update { it.copy(isAddedToMeal = true) }
+            } catch (e: Exception) {
+                _state.update { it.copy(error = e.message ?: "Failed to add meal") }
+            }
+        }
+    }
+
     fun clearProduct() {
-        _state.update { it.copy(scannedProduct = null) }
+        _state.update { it.copy(scannedProduct = null, isAddedToMeal = false) }
     }
 }
 
@@ -66,5 +81,6 @@ data class ScanState(
     val isScanning: Boolean = false,
     val isLoading: Boolean = false,
     val scannedProduct: Product? = null,
+    val isAddedToMeal: Boolean = false,
     val error: String? = null
 )

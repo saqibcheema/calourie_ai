@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.example.calorieapp.data.DataSource.local.AppDatabase
 import com.example.calorieapp.data.DataSource.local.ProductDao
+import com.example.calorieapp.data.DataSource.local.ScannedProductDao
 import com.example.calorieapp.data.DataSource.local.UserDao
 import com.example.calorieapp.data.DataSource.remote.BarcodeApiService
 import com.example.calorieapp.data.repository.BarcodeRepositoryImpl
@@ -54,6 +55,12 @@ object AppModule {
     @Singleton
     fun provideProductDao(db: AppDatabase)  : ProductDao{
         return db.ProductDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideScannedProductDao(db: AppDatabase): ScannedProductDao {
+        return db.scannedProductDao()
     }
 
     @Provides

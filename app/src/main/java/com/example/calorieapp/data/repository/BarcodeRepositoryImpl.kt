@@ -1,10 +1,12 @@
 package com.example.calorieapp.data.repository
 
 import com.example.calorieapp.data.DataSource.local.ProductDao
+import com.example.calorieapp.data.DataSource.local.ScannedProductDao
 import com.example.calorieapp.data.DataSource.remote.BarcodeApiService
-import com.example.calorieapp.data.Models.ProductEntity
+import com.example.calorieapp.data.Models.ScannedProductEntity
 import com.example.calorieapp.data.Models.toDomainProduct
 import com.example.calorieapp.data.Models.toEntity
+import com.example.calorieapp.data.Models.toProductEntity
 import com.example.calorieapp.domain.entities.DailyMacrosSummary
 import com.example.calorieapp.domain.entities.Product
 import com.example.calorieapp.domain.repository.BarcodeRepository
@@ -14,6 +16,7 @@ import javax.inject.Inject
 
 class BarcodeRepositoryImpl @Inject constructor(
     private val productDao: ProductDao,
+    private val scannedProductDao: ScannedProductDao,
     private val api: BarcodeApiService
 ): BarcodeRepository {
 
@@ -21,19 +24,27 @@ class BarcodeRepositoryImpl @Inject constructor(
         val product = meal.toEntity()
         productDao.insertProduct(product)
     }
+
+    override suspend fun addMealFromScan(product: Product) {
+        val entity = product.toEntity()
+        productDao.insertProduct(entity)
+    }
+
     override suspend fun scanProduct(barcode: String): Result<Product> {
         return try {
-            val localProduct = productDao.getProductByBarcode(barcode)
-            if (localProduct != null) {
-                val updatedProduct = localProduct.copy(scannedAt = java.util.Date(), isDeleted = false)
-                productDao.insertProduct(updatedProduct)
+            // First check the scan cache
+            val cachedProduct = scannedProductDao.getScannedProductByBarcode(barcode)
+            if (cachedProduct != null) {
+                val updatedProduct = cachedProduct.copy(scannedAt = java.util.Date())
+                scannedProductDao.insertScannedProduct(updatedProduct)
                 return Result.success(updatedProduct.toDomainProduct())
             }
 
+            // If not in cache, fetch from API
             val response = api.getProductByBarcode(barcode)
             if(response.status == 1 && response.product != null){
                 val product = response.product
-                val entity = ProductEntity(
+                val entity = ScannedProductEntity(
                     barcode = barcode,
                     productName = product.productName,
                     brand = product.brand,
@@ -45,7 +56,8 @@ class BarcodeRepositoryImpl @Inject constructor(
                     fiber = product.nutriments?.fiber,
                     sugars = product.nutriments?.sugars
                 )
-                productDao.insertProduct(entity)
+                // Save to cache table only (NOT to meal log)
+                scannedProductDao.insertScannedProduct(entity)
                 Result.success(entity.toDomainProduct())
             } else {
                 Result.failure(Exception("Product not found in database"))
@@ -59,6 +71,12 @@ class BarcodeRepositoryImpl @Inject constructor(
     override fun getScanHistory(): Flow<List<Product>> {
         return productDao.getAllScannedProducts().map {entity->
             entity.map { it.toDomainProduct() }
+        }
+    }
+
+    override fun getMealsByDate(selectedDate: String): Flow<List<Product>> {
+        return productDao.getMealsByDate(selectedDate).map { entities ->
+            entities.map { it.toDomainProduct() }
         }
     }
 

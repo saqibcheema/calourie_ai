@@ -78,3 +78,53 @@ fun Product.toEntity(): ProductEntity {
         scannedAt = this.scannedAt
     )
 }
+
+// ScannedProductEntity mappers
+
+fun ScannedProductEntity.toDomainProduct(): Product {
+    return Product(
+        barcode = this.barcode,
+        productName = this.productName,
+        brand = this.brand,
+        imageUrl = this.imageUrl,
+        calories = this.calories,
+        protein = this.protein,
+        carbs = this.carbs,
+        fat = this.fat,
+        fiber = this.fiber,
+        sugars = this.sugars,
+        scannedAt = this.scannedAt
+    )
+}
+
+fun ScannedProductEntity.toProductEntity(): ProductEntity {
+    return ProductEntity(
+        barcode = this.barcode,
+        productName = this.productName,
+        brand = this.brand,
+        imageUrl = this.imageUrl,
+        calories = this.calories,
+        protein = this.protein,
+        carbs = this.carbs,
+        fat = this.fat,
+        fiber = this.fiber,
+        sugars = this.sugars,
+        scannedAt = this.scannedAt
+    )
+}
+
+fun Product.toScannedEntity(): ScannedProductEntity {
+    return ScannedProductEntity(
+        barcode = this.barcode,
+        productName = this.productName,
+        brand = this.brand,
+        imageUrl = this.imageUrl,
+        calories = this.calories,
+        protein = this.protein,
+        carbs = this.carbs,
+        fat = this.fat,
+        fiber = this.fiber,
+        sugars = this.sugars,
+        scannedAt = this.scannedAt
+    )
+}
