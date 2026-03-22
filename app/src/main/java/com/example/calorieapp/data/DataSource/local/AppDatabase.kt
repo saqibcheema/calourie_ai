@@ -8,7 +8,7 @@ import com.example.calorieapp.data.Models.ProductEntity
 import com.example.calorieapp.data.Models.ScannedProductEntity
 import com.example.calorieapp.data.Models.UserEntity
 
-@Database(entities = [UserEntity::class, GoalsEntity::class, ProductEntity::class, ScannedProductEntity::class], version = 3, exportSchema = false)
+@Database(entities = [UserEntity::class, GoalsEntity::class, ProductEntity::class, ScannedProductEntity::class], version = 5, exportSchema = false)
 @TypeConverters(DateConverter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao

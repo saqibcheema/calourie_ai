@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.calorieapp.ui.theme.CalorieOrange
 
 @Composable
 fun TopHeader() {
@@ -53,7 +54,7 @@ fun TopHeader() {
             Icon(
                 imageVector = Icons.Default.LocalFireDepartment,
                 contentDescription = "Streak",
-                tint = Color(0xFFFFA500), // Orange fire
+                tint = CalorieOrange, // Orange fire
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))

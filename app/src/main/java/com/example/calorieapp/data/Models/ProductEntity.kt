@@ -21,5 +21,6 @@ data class ProductEntity(
     val fiber: Double?,
     val sugars: Double?,
     val scannedAt: Date = Date(),
+    val quantity: Int = 1,
     val isDeleted: Boolean = false  // Soft delete
 )

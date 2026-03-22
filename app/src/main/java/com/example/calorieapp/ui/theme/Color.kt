@@ -12,3 +12,9 @@ val ProteinRed = Color(0xFFE57373)     // Protein indicator
 val CarbsOrange = Color(0xFFFFB74D)    // Carbs indicator
 val FatsBlue = Color(0xFF64B5F6)       // Fats indicator
 val CalorieOrange = Color(0xFFFF6B35)
+
+// Newly Approved Colors
+val GradientPink = Color(0xFFFDF0F3)    // Dashboard Gradient Background
+val GradientBlue = Color(0xFFF4F5FB)    // Dashboard Gradient Background
+val SuccessLightGreen = Color(0xFFE8F5E9)   // Active/Success item backgrounds
+val SuccessGreen = Color(0xFF4CAF50)    // Active/Success item tints

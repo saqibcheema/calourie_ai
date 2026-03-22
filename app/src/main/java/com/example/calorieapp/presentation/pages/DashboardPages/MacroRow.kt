@@ -11,6 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.calorieapp.ui.theme.ProteinRed
+import com.example.calorieapp.ui.theme.CarbsOrange
+import com.example.calorieapp.ui.theme.FatsBlue
 
 @Composable
 fun MacrosRow(
@@ -28,7 +31,7 @@ fun MacrosRow(
             title = "Protein left",
             progress = proteinProgress,
             icon = Icons.Default.SetMeal, // Default Fish/Meat icon
-            iconColor = Color(0xFFE57373) // Reddish
+            iconColor = ProteinRed // Reddish
         )
         MacroCard(
             modifier = Modifier.weight(1f),
@@ -36,7 +39,7 @@ fun MacrosRow(
             title = "Carbs left",
             progress = carbsProgress,
             icon = Icons.Default.BreakfastDining, // Default Bread/Carbs icon
-            iconColor = Color(0xFFFFB74D) // Orange
+            iconColor = CarbsOrange // Orange
         )
         MacroCard(
             modifier = Modifier.weight(1f),
@@ -44,7 +47,7 @@ fun MacrosRow(
             title = "Fats left",
             progress = fatsProgress,
             icon = Icons.Default.WaterDrop, // Default Oil/Fat icon
-            iconColor = Color(0xFF64B5F6) // Blue
+            iconColor = FatsBlue // Blue
         )
     }
 }

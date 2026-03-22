@@ -25,6 +25,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.calorieapp.ui.theme.GhostWhite
+import com.example.calorieapp.ui.theme.SuccessGreen
+import com.example.calorieapp.ui.theme.SuccessLightGreen
 
 @Composable
 fun RecentUploadPlaceholder() {
@@ -45,24 +48,24 @@ fun RecentUploadPlaceholder() {
                 Box(
                     modifier = Modifier
                         .size(60.dp)
-                        .background(Color(0xFFE8F5E9), CircleShape),
+                        .background(SuccessLightGreen, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Restaurant,
                         contentDescription = "Meal",
-                        tint = Color(0xFF4CAF50)
+                        tint = SuccessGreen
                     )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
-                    Box(modifier = Modifier.width(120.dp).height(8.dp).background(Color(0xFFF0F0F0), CircleShape))
+                    Box(modifier = Modifier.width(120.dp).height(8.dp).background(GhostWhite, CircleShape))
                     Spacer(modifier = Modifier.height(12.dp))
-                    Box(modifier = Modifier.width(80.dp).height(8.dp).background(Color(0xFFF0F0F0), CircleShape))
+                    Box(modifier = Modifier.width(80.dp).height(8.dp).background(GhostWhite, CircleShape))
                 }
             }
             Spacer(modifier = Modifier.height(24.dp))
-            HorizontalDivider(color = Color(0xFFF0F0F0))
+            HorizontalDivider(color = GhostWhite)
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "Tap + to add your first meal of the day",

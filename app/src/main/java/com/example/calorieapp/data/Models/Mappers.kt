@@ -59,7 +59,8 @@ fun ProductEntity.toDomainProduct(): Product {
         fat = this.fat,
         fiber = this.fiber,
         sugars = this.sugars,
-        scannedAt = this.scannedAt
+        scannedAt = this.scannedAt,
+        quantity = this.quantity
     )
 }
 
@@ -75,7 +76,8 @@ fun Product.toEntity(): ProductEntity {
         fat = this.fat,
         fiber = this.fiber,
         sugars = this.sugars,
-        scannedAt = this.scannedAt
+        scannedAt = this.scannedAt,
+        quantity = this.quantity
     )
 }
 

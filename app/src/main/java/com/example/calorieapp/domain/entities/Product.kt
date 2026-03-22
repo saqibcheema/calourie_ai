@@ -13,11 +13,12 @@ data class Product(
     val fat: Double,
     val fiber: Double?,
     val sugars: Double?,
-    val scannedAt: Date = Date()
+    val scannedAt: Date = Date(),
+    val quantity: Int = 1
 ) {
     val isValid: Boolean
         get() = calories >= 0 && protein >= 0 && carbs >= 0 && fat >= 0
 
     val totalMacros: Double
-        get() = protein + carbs + fat
+        get() = (protein + carbs + fat) * quantity
 }

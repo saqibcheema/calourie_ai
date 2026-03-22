@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.calorieapp.ui.theme.GhostWhite
 
 @Composable
 fun CaloriesCard(leftCals: Int, progress: Float) {
@@ -64,7 +65,7 @@ fun CaloriesCard(leftCals: Int, progress: Float) {
                         1f // Track background
                     },
                     modifier = Modifier.size(100.dp),
-                    color = Color(0xFFF0F0F0),
+                    color = GhostWhite,
                     strokeWidth = 12.dp,
                     trackColor = ProgressIndicatorDefaults.circularIndeterminateTrackColor,
                 )
@@ -82,7 +83,7 @@ fun CaloriesCard(leftCals: Int, progress: Float) {
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .background(Color(0xFFF5F5F5), CircleShape),
+                        .background(GhostWhite, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(

@@ -10,6 +10,7 @@ interface BarcodeRepository {
     suspend fun scanProduct(barcode: String): Result<Product>
     fun getScanHistory(): Flow<List<Product>>
     fun getMealsByDate(selectedDate: String): Flow<List<Product>>
+    suspend fun updateMealQuantity(barcode: String, newQuantity: Int)
     suspend fun deleteProduct(barcode: String)
     fun getDailySummary(selectedDate: String): Flow<DailyMacrosSummary?>
 }

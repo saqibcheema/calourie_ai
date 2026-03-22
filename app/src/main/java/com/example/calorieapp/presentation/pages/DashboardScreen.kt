@@ -28,7 +28,9 @@ import com.example.calorieapp.presentation.components.BarcodeScannerView
 import com.example.calorieapp.presentation.pages.DashboardPages.*
 import com.example.calorieapp.presentation.viewModel.DashboardViewModel
 import com.example.calorieapp.presentation.viewModel.ScanViewModel
-import com.example.calorieapp.ui.theme.*
+import com.example.calorieapp.ui.theme.GradientPink
+import com.example.calorieapp.ui.theme.GradientBlue
+import com.example.calorieapp.ui.theme.PureWhite
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("NewApi")
@@ -41,6 +43,7 @@ fun DashboardScreen(
     val summary by viewModel.dailySummary.collectAsStateWithLifecycle()
     val dailyMeals by viewModel.dailyMeals.collectAsStateWithLifecycle()
     val scanState by scanViewModel.state.collectAsState()
+    val selectedDate by viewModel.selectedDate.collectAsStateWithLifecycle()
 
     var showNutritionSheet by remember { mutableStateOf(false) }
     var showScannerScreen by remember { mutableStateOf(false) }
@@ -82,8 +85,8 @@ fun DashboardScreen(
 
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFFFDF0F3),
-            Color(0xFFF4F5FB),
+            GradientPink,
+            GradientBlue,
             Color.White,
             Color.White
         )
@@ -139,7 +142,10 @@ fun DashboardScreen(
                     Spacer(modifier = Modifier.height(40.dp))
                     TopHeader()
                     Spacer(modifier = Modifier.height(24.dp))
-                    DateSelectorRow()
+                    DateSelectorRow(
+                        selectedDate = selectedDate,
+                        onDateSelected = { date -> viewModel.updateSelectedDate(date) }
+                    )
                     Spacer(modifier = Modifier.height(24.dp))
                     CaloriesCard(leftCals, calProgress)
                     Spacer(modifier = Modifier.height(16.dp))
@@ -168,7 +174,11 @@ fun DashboardScreen(
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(dailyMeals) { meal ->
-                                MealItemRow(product = meal)
+                                MealItemRow(
+                                    product = meal,
+                                    onIncreaseQuantity = { viewModel.increaseQuantity(meal) },
+                                    onDecreaseOrDelete = { viewModel.decreaseQuantityOrDelete(meal) }
+                                )
                             }
                         }
                     }

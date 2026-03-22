@@ -21,12 +21,24 @@ class BarcodeRepositoryImpl @Inject constructor(
 ): BarcodeRepository {
 
     override suspend fun addMeal(meal: Product) {
-        val product = meal.toEntity()
+        val existing = productDao.getProductByBarcode(meal.barcode)
+        val finalQuantity = if (existing != null && !existing.isDeleted) {
+            existing.quantity + meal.quantity
+        } else {
+            meal.quantity
+        }
+        val product = meal.toEntity().copy(quantity = finalQuantity, scannedAt = java.util.Date())
         productDao.insertProduct(product)
     }
 
     override suspend fun addMealFromScan(product: Product) {
-        val entity = product.toEntity()
+        val existing = productDao.getProductByBarcode(product.barcode)
+        val finalQuantity = if (existing != null && !existing.isDeleted) {
+            existing.quantity + product.quantity
+        } else {
+            product.quantity
+        }
+        val entity = product.toEntity().copy(quantity = finalQuantity, scannedAt = java.util.Date())
         productDao.insertProduct(entity)
     }
 
@@ -44,17 +56,22 @@ class BarcodeRepositoryImpl @Inject constructor(
             val response = api.getProductByBarcode(barcode)
             if(response.status == 1 && response.product != null){
                 val product = response.product
+                
+                // Calculate scale ratio based on product quantity vs 100g
+                val totalGrams = product.productQuantity ?: product.quantityPerUnitValue ?: 100.0
+                val scaleRatio = totalGrams / 100.0
+
                 val entity = ScannedProductEntity(
                     barcode = barcode,
                     productName = product.productName,
                     brand = product.brand,
                     imageUrl = product.imageUrl,
-                    calories = product.nutriments?.calories ?: 0.0,
-                    protein = product.nutriments?.protein ?: 0.0,
-                    carbs = product.nutriments?.carbs ?: 0.0,
-                    fat = product.nutriments?.fat ?: 0.0,
-                    fiber = product.nutriments?.fiber,
-                    sugars = product.nutriments?.sugars
+                    calories = (product.nutriments?.calories ?: 0.0) * scaleRatio,
+                    protein = (product.nutriments?.protein ?: 0.0) * scaleRatio,
+                    carbs = (product.nutriments?.carbs ?: 0.0) * scaleRatio,
+                    fat = (product.nutriments?.fat ?: 0.0) * scaleRatio,
+                    fiber = product.nutriments?.fiber?.times(scaleRatio),
+                    sugars = product.nutriments?.sugars?.times(scaleRatio)
                 )
                 // Save to cache table only (NOT to meal log)
                 scannedProductDao.insertScannedProduct(entity)
@@ -78,6 +95,10 @@ class BarcodeRepositoryImpl @Inject constructor(
         return productDao.getMealsByDate(selectedDate).map { entities ->
             entities.map { it.toDomainProduct() }
         }
+    }
+
+    override suspend fun updateMealQuantity(barcode: String, newQuantity: Int) {
+        productDao.updateProductQuantity(barcode, newQuantity)
     }
 
     override fun getDailySummary(selectedDate: String): Flow<DailyMacrosSummary?> {

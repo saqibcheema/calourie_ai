@@ -6,7 +6,7 @@ import retrofit2.http.Path
 
 interface BarcodeApiService {
 
-    @GET("api/v0/product/{barcode}.json")
+    @GET("api/v2/product/{barcode}.json")
     suspend fun getProductByBarcode(
         @Path("barcode") barcode: String
     ): ProductResponseDto

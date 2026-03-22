@@ -16,6 +16,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,26 +31,50 @@ import java.util.Locale
 
 @SuppressLint("NewApi")
 @Composable
-fun DateSelectorRow() {
-    val today = LocalDate.now()
-    val dates = (-3..3).map { today.plusDays(it.toLong()) }
+fun DateSelectorRow(
+    selectedDate: LocalDate,
+    onDateSelected: (LocalDate) -> Unit
+) {
+    val systemToday = LocalDate.now()
+    val startOfMonth = systemToday.withDayOfMonth(1)
+    val lengthOfMonth = systemToday.lengthOfMonth()
+    val dates = (0 until lengthOfMonth).map { startOfMonth.plusDays(it.toLong()) }
+
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(selectedDate) {
+        val index = dates.indexOf(selectedDate)
+        if (index >= 0) {
+            listState.animateScrollToItem(maxOf(0, index - 3))
+        }
+    }
 
     LazyRow(
+        state = listState,
         horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier.fillMaxWidth()
     ) {
         items(dates) { date ->
-            val isSelected = date == today
+            val isSelected = date == selectedDate
+            val isPastOrToday = !date.isAfter(systemToday)
             val dayName = date.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault())
             val dayNumber = date.dayOfMonth.toString()
 
+            val columnModifier = Modifier.padding(horizontal = 4.dp).let {
+                if (isPastOrToday) {
+                    it.clickable { onDateSelected(date) }
+                } else {
+                    it
+                }
+            }
+
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(horizontal = 4.dp)
+                modifier = columnModifier
             ) {
                 Text(
                     text = dayName,
-                    color = if (isSelected) Color.Black else Color.Gray,
+                    color = if (isSelected) Color.Black else if (isPastOrToday) Color.Gray else Color.LightGray,
                     fontSize = 12.sp,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                 )
@@ -57,13 +84,14 @@ fun DateSelectorRow() {
                 val circleModifier = if (isSelected) {
                     Modifier
                         .size(40.dp)
-                        .background(Color.White, CircleShape)
+                        .background(Color.Black, CircleShape)
                 } else {
                     Modifier
                         .size(40.dp)
+                        .background(Color.White, CircleShape)
                         .border(
                             width = 1.dp,
-                            color = Color.LightGray,
+                            color = if (isPastOrToday) Color.LightGray else Color.LightGray.copy(alpha = 0.5f),
                             shape = CircleShape
                         )
                 }
@@ -75,7 +103,7 @@ fun DateSelectorRow() {
                     Text(
                         text = dayNumber,
                         fontWeight = FontWeight.Bold,
-                        color = if (isSelected) Color.Black else Color.Gray
+                        color = if (isSelected) Color.White else if (isPastOrToday) Color.Black else Color.LightGray
                     )
                 }
             }

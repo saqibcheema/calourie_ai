@@ -16,7 +16,13 @@ data class ProductDto(
     val nutriments: NutrimentsDto?,
 
     @SerializedName("serving_size")
-    val servingSize: String?
+    val servingSize: String?,
+
+    @SerializedName("product_quantity")
+    val productQuantity: Double?,
+
+    @SerializedName("quantity_per_unit_value")
+    val quantityPerUnitValue: Double?
 )
 
 data class ProductResponseDto(

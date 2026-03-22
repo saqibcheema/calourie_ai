@@ -23,6 +23,9 @@ interface ProductDao {
     @Query("UPDATE scanned_products SET isDeleted = 1 WHERE barcode = :barcode")
     suspend fun softDeleteProduct(barcode: String)
 
+    @Query("UPDATE scanned_products SET quantity = :quantity WHERE barcode = :barcode AND isDeleted = 0")
+    suspend fun updateProductQuantity(barcode: String, quantity: Int)
+
     @Query("DELETE FROM scanned_products WHERE isDeleted = 1")
     suspend fun deleteOldProducts()
 
@@ -31,10 +34,10 @@ interface ProductDao {
 
     @Query("""
     SELECT 
-        SUM(calories) as totalCalories, 
-        SUM(protein) as totalProtein, 
-        SUM(fat) as totalFats, 
-        SUM(carbs) as totalCarbs 
+        SUM(calories * quantity) as totalCalories, 
+        SUM(protein * quantity) as totalProtein, 
+        SUM(fat * quantity) as totalFats, 
+        SUM(carbs * quantity) as totalCarbs 
     FROM scanned_products 
     WHERE isDeleted = 0 AND date(scannedAt / 1000, 'unixepoch', 'localtime') = :currentDate
 """)

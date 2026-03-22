@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.calorieapp.ui.theme.GhostWhite
 
 @Composable
 fun MacroCard(
@@ -50,7 +51,7 @@ fun MacroCard(
                 CircularProgressIndicator(
                     progress = { 1f },
                     modifier = Modifier.size(50.dp),
-                    color = Color(0xFFF0F0F0),
+                    color = GhostWhite,
                     strokeWidth = 6.dp,
                     trackColor = ProgressIndicatorDefaults.circularIndeterminateTrackColor,
                 )
