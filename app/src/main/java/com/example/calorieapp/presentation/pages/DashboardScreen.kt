@@ -38,6 +38,7 @@ import com.example.calorieapp.ui.theme.PureWhite
 fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel(),
     scanViewModel: ScanViewModel = hiltViewModel(),
+    onNavigateToManualEntry: () -> Unit = {}
 ) {
     val goals by viewModel.dailyGoals.collectAsStateWithLifecycle()
     val summary by viewModel.dailySummary.collectAsStateWithLifecycle()
@@ -198,6 +199,10 @@ fun DashboardScreen(
                         onScanClick = {
                             showScannerScreen = true
                             scanViewModel.startScanning()
+                        },
+                        onManualEntryClick = {
+                            showNutritionSheet = false
+                            onNavigateToManualEntry()
                         }
                     )
                 }

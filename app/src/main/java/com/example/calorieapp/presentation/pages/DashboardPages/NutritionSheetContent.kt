@@ -20,7 +20,8 @@ import com.example.calorieapp.ui.theme.SlateGrey
 
 @Composable
 fun NutritionSheetContent(
-    onScanClick: () -> Unit
+    onScanClick: () -> Unit,
+    onManualEntryClick: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -69,7 +70,7 @@ fun NutritionSheetContent(
             title = "Manual Entry",
             subtitle = "Describe what you ate in plain text",
             icon = Icons.Default.Edit,
-            onClick = { /* Manual Entry ki logic yahan aayegi */ }
+            onClick = onManualEntryClick
         )
 
         Spacer(modifier = Modifier.height(32.dp))

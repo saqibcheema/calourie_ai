@@ -8,4 +8,7 @@ sealed interface Dest{
 
     @Serializable
     data object Dashboard : Dest
+
+    @Serializable
+    data object ManualEntry : Dest
 }

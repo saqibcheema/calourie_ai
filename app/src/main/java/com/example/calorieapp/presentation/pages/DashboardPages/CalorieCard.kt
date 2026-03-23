@@ -1,5 +1,8 @@
 package com.example.calorieapp.presentation.pages.DashboardPages
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,6 +34,12 @@ import com.example.calorieapp.ui.theme.GhostWhite
 
 @Composable
 fun CaloriesCard(leftCals: Int, progress: Float) {
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+        label = "CalorieProgressAnimation"
+    )
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -71,7 +81,7 @@ fun CaloriesCard(leftCals: Int, progress: Float) {
                 )
                 CircularProgressIndicator(
                     progress = {
-                        progress // Actual progress
+                        animatedProgress // Actual progress
                     },
                     modifier = Modifier.size(100.dp),
                     color = Color.Black,

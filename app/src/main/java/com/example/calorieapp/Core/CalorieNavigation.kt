@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.calorieapp.presentation.pages.DashboardScreen
 import com.example.calorieapp.presentation.pages.OnBoardingScreen
+import com.example.calorieapp.presentation.pages.DashboardPages.ManualEntryScreen
 
 
 @Composable
@@ -30,7 +31,18 @@ fun CalorieAppNavigation(
             )
         }
         composable<Dest.Dashboard>{
-            DashboardScreen()
+            DashboardScreen(
+                onNavigateToManualEntry = {
+                    navController.navigate(Dest.ManualEntry)
+                }
+            )
+        }
+        composable<Dest.ManualEntry>{
+            ManualEntryScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }

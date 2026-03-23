@@ -1,5 +1,8 @@
 package com.example.calorieapp.presentation.pages.DashboardPages
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,6 +36,12 @@ fun MacroCard(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     iconColor: Color
 ) {
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
+        label = "MacroProgressAnimation"
+    )
+
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -56,7 +66,7 @@ fun MacroCard(
                     trackColor = ProgressIndicatorDefaults.circularIndeterminateTrackColor,
                 )
                 CircularProgressIndicator(
-                    progress = { progress },
+                    progress = { animatedProgress },
                     modifier = Modifier.size(50.dp),
                     color = iconColor,
                     strokeWidth = 6.dp,
