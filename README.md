@@ -1,33 +1,46 @@
-# Complete App Architecture Analysis Walkthrough
+# Calourie AI - Smart Nutrition Tracker
 
-Calourie AI is built using a modern Android tech stack utilizing **Clean Architecture** combined with the **Model-View-ViewModel (MVVM)** pattern. This ensures that the app is scalable, testable, and maintainable.
-
-## 1. Layers Overview
-
-The application is strictly divided into three layers:
-
-- **1. Presentation Layer (UI & ViewModels)**
-  The UI is built entirely with **Jetpack Compose**. The state is managed by **ViewModels** which collect data from the Domain layer and expose it as `StateFlow` to the UI components.
-  - **Key Screens**: [DashboardScreen](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/presentation/pages/DashboardScreen.kt#31-237), [MealLoggedScreen](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/presentation/pages/DashboardPages/MealLoggedScreen.kt#23-226), `UserFormScreen`, `StartScreen`
-  - **ViewModels**: [DashboardViewModel](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/presentation/viewModel/DashboardViewModel.kt#19-49), [ScanViewModel](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/presentation/viewModel/ScanViewModel.kt#15-79), `onBoardingViewModel`, `MainViewModel`
-
-- **2. Domain Layer (Business Logic)**
-  This is the core of the app. It does not know anything about Android Frameworks, UI, or databases. It only contains the business rules.
-  - **UseCases**: Encapsulate a single task (e.g., [AddMealUseCase](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/domain/useCases/AddMealUseCase.kt#7-14), `SaveUserAndCalculateGoalsUseCase`, [GetMealsByDateUseCase](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/domain/useCases/GetMealsByDateUseCase.kt#8-15)).
-  - **Interfaces**: Defines the contracts for repositories ([BarcodeRepository](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/domain/repository/BarcodeRepository.kt#7-16), [UserRepository](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/DI/AppModule.kt#46-53)).
-  - **Entities**: Pure Kotlin data classes ([Product](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/domain/entities/Product.kt#5-24), [DailyGoals](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/data/Models/Mappers.kt#41-49)).
-
-- **3. Data Layer**
-  Responsible for fetching, saving, and caching data. It implements the interfaces defined in the Domain layer.
-  - **Repositories**: [BarcodeRepositoryImpl](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/data/repository/BarcodeRepositoryImpl.kt#17-91), `UserRepositoryImpl` coordinate between data sources.
-  - **Local Source**: **Room Database** ([AppDatabase](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/data/DataSource/local/AppDatabase.kt#11-18), [ProductDao](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/data/DataSource/local/ProductDao.kt#11-43), [UserDao](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/DI/AppModule.kt#40-45), [ScannedProductDao](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/data/DataSource/local/ScannedProductDao.kt#9-18)) stores [ScannedProductEntity](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/data/Models/ScannedProductEntity.kt#8-25) and [ProductEntity](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/data/Models/ProductEntity.kt#8-26).
-  - **Remote Source**: **Retrofit** (`BarcodeApiService`) fetches barcode products from *OpenFoodFacts*.
+Calourie AI is a modern Android application designed to simplify meal tracking using AI-powered barcode scanning and manual entries. Built with **Clean Architecture** and **Jetpack Compose**, it offers a premium, scalable, and highly performant experience.
 
 ---
 
-## 2. Complete Interaction Diagram
+## 🚀 Tech Stack
 
-The diagram below shows exactly how the code interacts with each other. It maps the two primary workflows: **1) Onboarding/User Profile Setup**, and **2) Scanning & Logging Meals**.
+- **UI**: [Jetpack Compose](https://developer.android.com/jetpack/compose) (100% Declarative UI)
+- **Architecture**: Clean Architecture + MVVM + MVI-lite
+- **DI**: [Hilt](https://developer.android.com/training/dependency-injection/hilt-android) (Dagger Hilt)
+- **Database**: [Room](https://developer.android.com/training/data-storage/room) (Local Persistence)
+- **Networking**: [Retrofit](https://square.github.io/retrofit/) + [Gson](https://github.com/google/gson) (OpenFoodFacts API)
+- **Scanner**: [ML Kit](https://developers.google.com/ml-kit/vision/barcode-scanning) + [CameraX](https://developer.android.com/jetpack/androidx/releases/camera)
+- **Image Loading**: [Coil](https://coil-kt.github.io/coil/)
+- **Navigation**: [Compose Navigation](https://developer.android.com/jetpack/compose/navigation)
+
+---
+
+## 🏗️ Project Architecture
+
+The application is strictly divided into three layers to ensure separation of concerns and high testability.
+
+### 1. Presentation Layer (UI & State)
+Built with **Jetpack Compose**, the UI observes state from **ViewModels** which act as the bridge between the UI and Domain logic.
+- **ViewModels**: [DashboardViewModel](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/presentation/viewModel/DashboardViewModel.kt), [ScanViewModel](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/presentation/viewModel/ScanViewModel.kt)
+- **Navigation**: Managed in [CalorieNavigation](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/Core/CalorieNavigation.kt)
+
+### 2. Domain Layer (Business Logic)
+The heart of the app. Contains pure business rules (UseCases) and Repository interfaces.
+- **UseCases**: [AddMealUseCase](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/domain/useCases/AddMealUseCase.kt), [ScanProductUseCase](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/domain/useCases/ScanProductUseCase.kt)
+- **Validation**: [ManualEntryValidator](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/domain/validation/ManualEntryValidator.kt)
+
+### 3. Data Layer (Persistence & Network)
+Handles data fetching and caching. Implements the interfaces defined in the Domain layer.
+- **Repositories**: [BarcodeRepositoryImpl](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/data/repository/BarcodeRepositoryImpl.kt)
+- **Local Source**: Room DB ([AppDatabase](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/data/DataSource/local/AppDatabase.kt))
+
+---
+
+## 📊 System Interaction Diagram
+
+This diagram visualizes the flow of data through the system, covering both **Scanning** and **Manual Entry** workflows.
 
 ```mermaid
 flowchart TD
@@ -39,87 +52,81 @@ flowchart TD
     classDef local fill:#607D8B,stroke:#455A64,color:white;
     classDef remote fill:#F44336,stroke:#D32F2F,color:white;
 
-    subgraph Presentation Layer
-        UI_Onboarding["UserFormScreen/StartScreen"]:::ui
-        VM_Onboarding["onBoardingViewModel"]:::viewmodel
-
-        UI_Dashboard["DashboardScreen/MealLoggedScreen"]:::ui
-        VM_Dashboard["DashboardViewModel"]:::viewmodel
-        VM_Scan["ScanViewModel"]:::viewmodel
-        
-        UI_Onboarding <--> VM_Onboarding
-        UI_Dashboard <--> VM_Dashboard
-        UI_Dashboard <--> VM_Scan
+    subgraph Presentation_Layer [Presentation Layer]
+        UI_Dashboard["Dashboard / ManualEntryScreen"]:::ui
+        VM_Main["DashboardViewModel / ScanViewModel"]:::viewmodel
+        UI_Dashboard <--> VM_Main
     end
 
-    subgraph Domain Layer
-        UC_SaveUser["SaveUserAndCalculateGoalsUseCase"]:::usecase
-        UC_GetGoals["GetGoalsUseCase"]:::usecase
-        
-        UC_ScanLog["ScanProductUseCase / AddMealUseCase"]:::usecase
-        UC_Dashboard["GetMealsByDateUseCase / GetTodayNutrimentsSummaryUseCase"]:::usecase
-        
-        Repo_User{"UserRepository (Interface)"}:::usecase
-        Repo_Barcode{"BarcodeRepository (Interface)"}:::usecase
+    subgraph Domain_Layer [Domain Layer]
+        UC_Meal["AddMeal / DeleteMeal / UpdateQuantity"]:::usecase
+        UC_Scan["ScanProductUseCase"]:::usecase
+        UC_User["SaveUser / CalculateGoals"]:::usecase
+        Repo_Interface{"Repository Interfaces"}:::usecase
     end
 
-    subgraph Data Layer
-        RepoImpl_User["UserRepositoryImpl"]:::repo
-        RepoImpl_Barcode["BarcodeRepositoryImpl"]:::repo
-        
-        DAO_User[("UserDao (Room)")]:::local
-        DAO_Product[("ProductDao (Room)")]:::local
-        DAO_Cache[("ScannedProductDao (Cache)")]:::local
-        
-        API_Barcode(("BarcodeApiService (Retrofit/OpenFoodFacts)")):::remote
+    subgraph Data_Layer [Data Layer]
+        Repo_Impl["BarcodeRepositoryImpl / UserRepositoryImpl"]:::repo
+        DAO_Room[("Room DAOs (Product, User, Cache)")]:::local
+        API_Remote(("OpenFoodFacts (Retrofit)")):::remote
     end
 
-    %% Flow: Onboarding
-    VM_Onboarding -->|"User Details"| UC_SaveUser
-    UC_SaveUser --> Repo_User
-    Repo_User -.-> RepoImpl_User
-    RepoImpl_User --> DAO_User
-
-    %% Flow: Dashboard Fetching Data
-    VM_Dashboard -->|"Observe Goals"| UC_GetGoals
-    UC_GetGoals --> Repo_User
-    
-    VM_Dashboard -->|"Observe Macros & Meals"| UC_Dashboard
-    UC_Dashboard --> Repo_Barcode
-    Repo_Barcode -.-> RepoImpl_Barcode
-    RepoImpl_Barcode --> DAO_Product
-
-    %% Flow: Scanning a Product
-    VM_Scan -->|"Barcode"| UC_ScanLog
-    UC_ScanLog --> Repo_Barcode
-    
-    RepoImpl_Barcode -->|"1. Check Cache"| DAO_Cache
-    RepoImpl_Barcode -->|"2. Wait! Not in Cache?"| API_Barcode
-    API_Barcode -->|"Return JSON"| RepoImpl_Barcode
-    RepoImpl_Barcode -->|"3. Save to Cache"| DAO_Cache
-
-    %% Flow: Adding to Meal Log
-    VM_Scan -->|"Add to Meal"| UC_ScanLog
-    RepoImpl_Barcode -->|"Save Entity"| DAO_Product
+    %% Workflow Flows
+    VM_Main --> UC_Meal & UC_Scan & UC_User
+    UC_Meal & UC_Scan & UC_User --> Repo_Interface
+    Repo_Interface -.-> Repo_Impl
+    Repo_Impl --> DAO_Room
+    Repo_Impl --> API_Remote
 ```
 
 ---
 
-## 3. Step-by-Step Data Flow Example
+## 📁 Directory Structure
 
-To understand how the layers connect, let's trace what happens when you **Scan a Barcode and Add it to a Meal**:
+```text
+app/src/main/java/com/example/calorieapp/
+├── Core/               # Navigation, Routes, Constants
+├── DI/                 # Hilt Modules (Dependency Injection)
+├── data/               
+│   ├── DataSource/     # Local (Room) & Remote (Retrofit)
+│   ├── Models/         # Entities, Mappers, DTOs
+│   └── repository/     # Repository Implementations
+├── domain/             
+│   ├── entities/       # Pure Business Objects
+│   ├── repository/     # Repository Interfaces
+│   ├── useCases/       # Individual Business Logic (UseCases)
+│   └── validation/     # Business Validation (e.g., Manual Entry)
+├── presentation/       
+│   ├── pages/          # Compose Screens (Dashboard, Scanner, Manual)
+│   └── viewModel/      # UI Logic & State Management
+└── ui/                 # Themes, Color, Typography
+```
 
-1. **User taps Scanner on [DashboardScreen](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/presentation/pages/DashboardScreen.kt#31-237)**: The camera opens via CameraX/MLKit. A barcode string is detected.
-2. **[ScanViewModel](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/presentation/viewModel/ScanViewModel.kt#15-79)**: Receives the string and calls [ScanProductUseCase](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/domain/useCases/ScanProductUseCase.kt#7-19).
-3. **[ScanProductUseCase](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/domain/useCases/ScanProductUseCase.kt#7-19)**: Calls `BarcodeRepository.scanProduct(barcode)`.
-4. **[BarcodeRepositoryImpl](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/data/repository/BarcodeRepositoryImpl.kt#17-91)**:
-   - First, checks [ScannedProductDao](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/data/DataSource/local/ScannedProductDao.kt#9-18) (Cache table) to see if it was scanned before.
-   - If not found, calls `BarcodeApiService.getProductByBarcode` using Retrofit to get data from OpenFoodFacts.
-   - Saves the fresh data into the Cache table via `ScannedProductDao.insertScannedProduct(product)`.
-   - Returns a pure [Product](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/domain/entities/Product.kt#5-24) domain object back up the chain.
-5. **[MealLoggedScreen](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/presentation/pages/DashboardPages/MealLoggedScreen.kt#23-226)**: The UI updates to show the product details with an **"Add to Meal"** button.
-6. **User taps "Add to Meal"**: 
-   - [ScanViewModel](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/presentation/viewModel/ScanViewModel.kt#15-79) fires [AddMealUseCase(product)](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/domain/useCases/AddMealUseCase.kt#7-14).
-   - [BarcodeRepositoryImpl](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/data/repository/BarcodeRepositoryImpl.kt#17-91) is told to permanently log the item.
-   - It converts the [Product](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/domain/entities/Product.kt#5-24) back into a [ProductEntity](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/data/Models/ProductEntity.kt#8-26) and saves it into the Meal Log table via `ProductDao.insertProduct(entity)`.
-7. **[DashboardViewModel](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/presentation/viewModel/DashboardViewModel.kt#19-49) Reacts**: Because it collects `getMealsByDateUseCase` and `getTodayNutrimentsSummaryUseCase` as *StateFlows* directly from Room, the Dashboard UI instantly highlights the new calories and displays the meal item dynamically!
+---
+
+## ✨ Key Features
+
+- **Smart Barcode Scanning**: Uses ML Kit to identify products and fetch nutrition data via OpenFoodFacts.
+- **Structured Manual Entry**: Log custom meals with validation for portions, grams, and meal types.
+- **Dynamic Dashboard**: Real-time calorie and macro tracking based on your daily goals.
+- **Goal Calculation**: Automated BMR and macronutrient goal calculation during onboarding.
+- **Search & History**: Quickly access previously scanned items from the local cache.
+
+---
+
+## 🛠️ Installation & Setup
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/your-username/calourie-ai.git
+   ```
+2. **Open in Android Studio**:
+   - Ensure you have **Android Studio Ladybug (or newer)** installed.
+3. **Build & Run**:
+   - Let Gradle sync complete.
+   - Run on an Emulator or Physical Device (API 25+).
+
+---
+
+## 📄 License
+This project is for educational/personal use. Please check OpenFoodFacts for data usage policies.

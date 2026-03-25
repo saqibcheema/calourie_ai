@@ -111,9 +111,9 @@ fun MealItemRow(
                         Icon(imageVector = Icons.Default.Add, contentDescription = "Increase", tint = MaterialTheme.colorScheme.primary)
                     }
                 }
-                IconButton(onClick = onDecreaseOrDelete, modifier = Modifier.size(32.dp)) {
-                Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red.copy(alpha = 0.8f))
             }
+            IconButton(onClick = onDecreaseOrDelete, modifier = Modifier.size(32.dp)) {
+                Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red.copy(alpha = 0.8f))
             }
         }
     }

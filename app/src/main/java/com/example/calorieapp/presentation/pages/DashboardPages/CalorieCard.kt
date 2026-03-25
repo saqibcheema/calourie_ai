@@ -36,7 +36,7 @@ import com.example.calorieapp.ui.theme.GhostWhite
 fun CaloriesCard(leftCals: Int, progress: Float) {
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
-        animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
         label = "CalorieProgressAnimation"
     )
 
