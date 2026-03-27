@@ -13,3 +13,13 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Build outputs
+/app/build/
+
+# AI assistant generated files
+out.txt
+test_output.txt
+implementation_plan*
+architecture_walkthrough.md
+walkthrough.md
