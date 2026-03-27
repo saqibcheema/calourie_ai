@@ -5,9 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.example.calorieapp.domain.entities.Product
 import com.example.calorieapp.domain.useCases.AddMealUseCase
 import com.example.calorieapp.domain.useCases.ScanProductUseCase
+import com.example.calorieapp.util.ConnectivityObserver
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -15,11 +18,26 @@ import javax.inject.Inject
 @HiltViewModel
 class ScanViewModel @Inject constructor(
     private val scanProductUseCase: ScanProductUseCase,
-    private val addMealUseCase: AddMealUseCase
+    private val addMealUseCase: AddMealUseCase,
+    private val connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ScanState())
     val state: StateFlow<ScanState> = _state
+
+    init {
+        observeConnectivity()
+    }
+
+    private fun observeConnectivity() {
+        connectivityObserver.observe()
+            .onEach { status ->
+                _state.update { 
+                    it.copy(isOffline = status != ConnectivityObserver.Status.Available)
+                }
+            }
+            .launchIn(viewModelScope)
+    }
 
 
     fun startScanning() {
@@ -33,6 +51,11 @@ class ScanViewModel @Inject constructor(
     fun onBarcodeDetected(barcode: String) {
         if (_state.value.isLoading || _state.value.scannedProduct != null) return
         
+        if (_state.value.isOffline) {
+            _state.update { it.copy(error = "No internet connection. Please try again later.") }
+            return
+        }
+
         viewModelScope.launch {
             _state.update {
                 it.copy(isScanning = false, isLoading = true)
@@ -62,6 +85,12 @@ class ScanViewModel @Inject constructor(
 
     fun addToMeal() {
         val product = _state.value.scannedProduct ?: return
+        
+        if (_state.value.isOffline) {
+            _state.update { it.copy(error = "No internet connection. Failed to add meal.") }
+            return
+        }
+
         viewModelScope.launch {
             try {
                 addMealUseCase(product)
@@ -82,5 +111,6 @@ data class ScanState(
     val isLoading: Boolean = false,
     val scannedProduct: Product? = null,
     val isAddedToMeal: Boolean = false,
-    val error: String? = null
-)
+    val error: String? = null,
+    val isOffline: Boolean = false
+)

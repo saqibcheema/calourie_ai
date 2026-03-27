@@ -24,8 +24,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.calorieapp.presentation.components.BarcodeScannerView
+import com.example.calorieapp.presentation.components.*
 import com.example.calorieapp.presentation.pages.DashboardPages.*
+
 import com.example.calorieapp.presentation.viewModel.DashboardViewModel
 import com.example.calorieapp.presentation.viewModel.ScanViewModel
 import com.example.calorieapp.ui.theme.GradientPink
@@ -211,15 +212,20 @@ fun DashboardScreen(
             if (showScannerScreen) {
                 showNutritionSheet = false
                 if (hasCameraPermission) {
-                    BarcodeScannerView(
-                        onBarcodeDetected = { barcode ->
-                            scanViewModel.onBarcodeDetected(barcode)
-                        },
-                        onBackClick = {
-                            scanViewModel.stopScanning()
-                            showScannerScreen = false
-                        }
-                    )
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        BarcodeScannerView(
+                            onBarcodeDetected = { barcode ->
+                                scanViewModel.onBarcodeDetected(barcode)
+                            },
+                            onBackClick = {
+                                scanViewModel.stopScanning()
+                                showScannerScreen = false
+                            }
+                        )
+
+                        PremiumConnectivityStatus(isOffline = scanState.isOffline)
+
+                    }
                 } else {
                     LaunchedEffect(Unit) {
                         launcher.launch(android.Manifest.permission.CAMERA)

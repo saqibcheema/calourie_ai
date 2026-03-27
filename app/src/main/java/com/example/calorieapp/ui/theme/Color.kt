@@ -18,3 +18,7 @@ val GradientPink = Color(0xFFFDF0F3)    // Dashboard Gradient Background
 val GradientBlue = Color(0xFFF4F5FB)    // Dashboard Gradient Background
 val SuccessLightGreen = Color(0xFFE8F5E9)   // Active/Success item backgrounds
 val SuccessGreen = Color(0xFF4CAF50)    // Active/Success item tints
+// Glassmorphic & Status Colors
+val GlassWhite = Color(0xB3FFFFFF)    // PureWhite at 70% opacity
+val OfflineRed = ProteinRed           // Reusing ProteinRed for offline status
+val SearchingGrey = SlateGrey         // Reusing SlateGrey for searching status

@@ -96,4 +96,10 @@ object AppModule {
             .build()
             .create(BarcodeApiService::class.java)
     }
-}
+
+    @Provides
+    @Singleton
+    fun provideConnectivityObserver(@ApplicationContext context: Context): com.example.calorieapp.util.ConnectivityObserver {
+        return com.example.calorieapp.util.NetworkConnectivityObserver(context)
+    }
+}
