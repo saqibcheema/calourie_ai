@@ -9,7 +9,8 @@ import java.util.Date
     tableName = "scanned_products",
     indices = [Index(value = ["barcode"])])
 data class ProductEntity(
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
     val barcode: String,
     val productName: String?,
     val brand: String?,

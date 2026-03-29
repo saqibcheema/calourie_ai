@@ -168,14 +168,24 @@ fun DashboardScreen(
                     if (dailyMeals.isEmpty()) {
                         RecentUploadPlaceholder()
                     } else {
+                        val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+                        LaunchedEffect(dailyMeals.size) {
+                            if (dailyMeals.isNotEmpty()) {
+                                listState.animateScrollToItem(0)
+                            }
+                        }
                         LazyColumn(
+                            state = listState,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .weight(1f),
                             contentPadding = PaddingValues(bottom = 16.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            items(dailyMeals) { meal ->
+                            items(
+                                dailyMeals,
+                                key = { it.barcode + "_" + it.scannedAt.time }
+                            ) { meal ->
                                 MealItemRow(
                                     product = meal,
                                     onIncreaseQuantity = { viewModel.increaseQuantity(meal) },
@@ -184,7 +194,6 @@ fun DashboardScreen(
                             }
                         }
                     }
-                    Spacer(modifier = Modifier.height(32.dp))
                 }
             }
 

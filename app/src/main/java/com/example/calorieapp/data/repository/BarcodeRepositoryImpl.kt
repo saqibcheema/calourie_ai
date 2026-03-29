@@ -22,24 +22,24 @@ class BarcodeRepositoryImpl @Inject constructor(
 
     override suspend fun addMeal(meal: Product) {
         val existing = productDao.getProductByBarcode(meal.barcode)
-        val finalQuantity = if (existing != null && !existing.isDeleted) {
-            existing.quantity + meal.quantity
+        if (existing != null && !existing.isDeleted) {
+            val finalQuantity = existing.quantity + meal.quantity
+            productDao.updateProductQuantity(meal.barcode, finalQuantity)
         } else {
-            meal.quantity
+            val product = meal.toEntity().copy(quantity = meal.quantity, scannedAt = java.util.Date())
+            productDao.insertProduct(product)
         }
-        val product = meal.toEntity().copy(quantity = finalQuantity, scannedAt = java.util.Date())
-        productDao.insertProduct(product)
     }
 
     override suspend fun addMealFromScan(product: Product) {
         val existing = productDao.getProductByBarcode(product.barcode)
-        val finalQuantity = if (existing != null && !existing.isDeleted) {
-            existing.quantity + product.quantity
+        if (existing != null && !existing.isDeleted) {
+            val finalQuantity = existing.quantity + product.quantity
+            productDao.updateProductQuantity(product.barcode, finalQuantity)
         } else {
-            product.quantity
+            val entity = product.toEntity().copy(quantity = product.quantity, scannedAt = java.util.Date())
+            productDao.insertProduct(entity)
         }
-        val entity = product.toEntity().copy(quantity = finalQuantity, scannedAt = java.util.Date())
-        productDao.insertProduct(entity)
     }
 
     override suspend fun scanProduct(barcode: String): Result<Product> {

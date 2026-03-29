@@ -2,8 +2,11 @@ package com.example.calorieapp.presentation.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.calorieapp.data.DataSource.remote.dto.ClarificationQuestion
+import com.example.calorieapp.data.DataSource.remote.dto.FoodItemEstimate
 import com.example.calorieapp.domain.entities.Product
 import com.example.calorieapp.domain.useCases.AddMealUseCase
+import com.example.calorieapp.domain.useCases.EstimateNutritionUseCase
 import com.example.calorieapp.domain.validation.ManualEntryValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,201 +17,207 @@ import java.util.*
 import javax.inject.Inject
 
 data class ManualEntryState(
-    val whereEat: String = "Restaurant", // Restaurant, Home Cooked
-    val foodName: String = "",
-    val restaurantType: String = "Desi",
-    val visibleExtras: Set<String> = emptySet(),
-    val cookingMethod: String = "Raw",
-    val addOil: Boolean = false,
-    val oilAmount: String = "None",
-    val extrasAdded: Set<String> = emptySet(),
-    
-    val portionType: String = "Plate size", // Grams, Plate size, Pieces, Slices, Volume (ml)
-    val isPortionTypeExpanded: Boolean = true,
-    
-    val gramsValue: Int = 225,
-    val plateSize: String = "Medium (~400g)",
-    val piecesCount: Int = 1,
-    val slicesSize: String = "Medium",
-    val slicesCount: Int = 1,
-    val volumeSize: String = "Regular (250ml)",
-    val manualMl: String = "",
-    
-    val isDescriptionExpanded: Boolean = false,
-    val extraDescription: String = "",
-    
+    // ── User input ──────────────────────────────────────────────────────
+    val mealDescription: String = "",
+    val mealType: String = "Breakfast",              // Breakfast, Lunch, Dinner, Snack
+    val eatingContext: String = "",                   // "", "Restaurant", "Home Cooked", "Street Food"
+
+    // ── Clarification flow ──────────────────────────────────────────────
+    val isClarificationNeeded: Boolean = false,
+    val clarificationQuestions: List<ClarificationQuestion> = emptyList(),
+    val clarificationAnswers: Map<String, String> = emptyMap(), // Maps question to user's answer
+
+    // ── Loading / result state ──────────────────────────────────────────
     val isLoading: Boolean = false,
+    val isEstimating: Boolean = false,
+    val nutritionConfidence: String = "medium",
+    val estimatedCalories: Double = 0.0,
+    val estimatedProtein: Double = 0.0,
+    val estimatedCarbs: Double = 0.0,
+    val estimatedFat: Double = 0.0,
+    val estimatedFiber: Double = 0.0,
+    val estimatedSugars: Double = 0.0,
+    val itemizedBreakdown: List<FoodItemEstimate> = emptyList(),
+    val showResults: Boolean = false,
+    val loggedFoodName: String = "",                  // AI-generated display name
     val errorMessage: String? = null,
     val isSuccess: Boolean = false
 )
 
 @HiltViewModel
 class ManualEntryViewModel @Inject constructor(
-    private val addMealUseCase: AddMealUseCase
+    private val addMealUseCase: AddMealUseCase,
+    private val estimateNutritionUseCase: EstimateNutritionUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(ManualEntryState())
     val state = _state.asStateFlow()
 
-    fun onWhereEatChange(where: String) {
-        _state.update { it.copy(whereEat = where) }
+    fun onMealDescriptionChange(description: String) {
+        _state.update { it.copy(mealDescription = description) }
     }
 
-    fun onFoodNameChange(name: String) {
-        _state.update { it.copy(foodName = name) }
+    fun onMealTypeChange(type: String) {
+        _state.update { it.copy(mealType = type) }
     }
 
-    fun onRestaurantTypeChange(type: String) {
-        _state.update { it.copy(restaurantType = type) }
-    }
-
-    fun toggleVisibleExtra(extra: String) {
+    fun onEatingContextChange(context: String) {
+        // Toggle: tap again to deselect
         _state.update {
-            val newExtras = if (it.visibleExtras.contains(extra)) {
-                it.visibleExtras - extra
-            } else {
-                it.visibleExtras + extra
-            }
-            it.copy(visibleExtras = newExtras)
+            it.copy(eatingContext = if (it.eatingContext == context) "" else context)
         }
     }
 
-    fun onCookingMethodChange(method: String) {
-        _state.update { it.copy(cookingMethod = method) }
-    }
-
-    fun onAddOilChange(add: Boolean) {
-        _state.update { it.copy(addOil = add) }
-    }
-
-    fun onOilAmountChange(amount: String) {
-        _state.update { it.copy(oilAmount = amount) }
-    }
-
-    fun toggleExtraAdded(extra: String) {
-        _state.update {
-            val newExtras = if (it.extrasAdded.contains(extra)) {
-                it.extrasAdded - extra
-            } else {
-                it.extrasAdded + extra
-            }
-            it.copy(extrasAdded = newExtras)
+    fun onClarificationAnswerChanged(question: String, answer: String) {
+        _state.update { 
+            val newAnswers = it.clarificationAnswers.toMutableMap()
+            newAnswers[question] = answer
+            it.copy(clarificationAnswers = newAnswers)
         }
     }
+    
+    fun submitClarifications() {
+        val currentState = _state.value
+        
+        // Combine answers into description
+        val answersSummary = currentState.clarificationAnswers.values.filter { it.isNotBlank() }.joinToString(", ")
+        val newDescription = if (answersSummary.isNotEmpty()) {
+             "${currentState.mealDescription.trim()} (Clarifications: $answersSummary)"
+        } else {
+             currentState.mealDescription.trim()
+        }
 
-    fun onPortionTypeChange(type: String) {
-        _state.update { it.copy(portionType = type) }
+        _state.update {
+            it.copy(
+                mealDescription = newDescription,
+                isClarificationNeeded = false,
+                clarificationQuestions = emptyList(),
+                clarificationAnswers = emptyMap()
+            )
+        }
+        
+        // Re-run the estimate process with the updated description containing the answers
+        logFood()
     }
-
-    fun togglePortionTypeExpansion() {
-        _state.update { it.copy(isPortionTypeExpanded = !it.isPortionTypeExpanded) }
-    }
-
-    fun onGramsChange(grams: Int) {
-        _state.update { it.copy(gramsValue = grams) }
-    }
-
-    fun onPlateSizeChange(size: String) {
-        _state.update { it.copy(plateSize = size) }
-    }
-
-    fun onPiecesCountChange(diff: Int) {
-        _state.update { it.copy(piecesCount = (it.piecesCount + diff).coerceAtLeast(1)) }
-    }
-
-    fun onSlicesSizeChange(size: String) {
-        _state.update { it.copy(slicesSize = size) }
-    }
-
-    fun onSlicesCountChange(diff: Int) {
-        _state.update { it.copy(slicesCount = (it.slicesCount + diff).coerceAtLeast(1)) }
-    }
-
-    fun onVolumeSizeChange(size: String) {
-        _state.update { it.copy(volumeSize = size) }
-    }
-
-    fun onManualMlChange(ml: String) {
-        _state.update { it.copy(manualMl = ml) }
-    }
-
-    fun toggleDescriptionExpansion() {
-        _state.update { it.copy(isDescriptionExpanded = !it.isDescriptionExpanded) }
-    }
-
-    fun onDescriptionChange(desc: String) {
-        _state.update { it.copy(extraDescription = desc) }
+    
+    fun onCancelClarification() {
+        _state.update {
+            it.copy(
+                isClarificationNeeded = false,
+                clarificationQuestions = emptyList(),
+                clarificationAnswers = emptyMap()
+            )
+        }
     }
 
     fun logFood() {
         val currentState = _state.value
-        val quantityStr = when(currentState.portionType) {
-            "Grams" -> currentState.gramsValue.toString()
-            "Plate size" -> currentState.plateSize
-            "Pieces" -> "${currentState.piecesCount} pcs"
-            "Slices" -> "${currentState.slicesCount} slices (${currentState.slicesSize})"
-            "Volume (ml)" -> currentState.volumeSize
-            else -> ""
-        }
 
-        val validationResult = ManualEntryValidator.validate(
-            mealName = currentState.foodName,
-            quantity = quantityStr,
-            isGrams = currentState.portionType == "Grams",
-            description = currentState.extraDescription
+        val validationResult = ManualEntryValidator.validateDescription(
+            description = currentState.mealDescription,
+            mealType = currentState.mealType
         )
 
-        when(validationResult) {
+        when (validationResult) {
             is ManualEntryValidator.ValidationResult.Error -> {
                 _state.update { it.copy(errorMessage = validationResult.message) }
             }
             is ManualEntryValidator.ValidationResult.Success -> {
-                saveMeal(validationResult)
+                estimateAndSave(validationResult)
             }
         }
     }
 
-    private fun saveMeal(validation: ManualEntryValidator.ValidationResult.Success) {
+    private fun estimateAndSave(validation: ManualEntryValidator.ValidationResult.Success) {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, errorMessage = null) }
+            _state.update { it.copy(isLoading = true, isEstimating = true, errorMessage = null) }
             try {
-                val extras = if (_state.value.whereEat == "Restaurant") {
-                    _state.value.visibleExtras.joinToString(", ")
-                } else {
-                    _state.value.extrasAdded.joinToString(", ")
+                // Build natural-language prompt with optional context
+                val userPrompt = buildString {
+                    if (_state.value.eatingContext.isNotBlank()) {
+                        append("[${_state.value.eatingContext}] ")
+                    }
+                    append(_state.value.mealType)
+                    append(": ")
+                    append(validation.description)
                 }
 
-                val details = buildString {
-                    append("Source: ${_state.value.whereEat}")
-                    if (_state.value.whereEat == "Restaurant") {
-                        append(", Type: ${_state.value.restaurantType}")
-                    } else {
-                        append(", Method: ${_state.value.cookingMethod}")
-                        if (_state.value.addOil) append(", Oil: ${_state.value.oilAmount}")
+                // Call Groq AI to estimate nutrition
+                val estimationResult = estimateNutritionUseCase(userPrompt)
+
+                _state.update { it.copy(isEstimating = false) }
+
+                if (estimationResult.isFailure) {
+                    val errorException = estimationResult.exceptionOrNull()
+                    val errorMsg = when (errorException) {
+                        is com.example.calorieapp.data.network.interceptors.NoConnectivityException -> 
+                            "No internet connection. Please turn on Wi-Fi or mobile data."
+                        is com.example.calorieapp.data.network.interceptors.RateLimitException -> 
+                            "You're querying too fast! Please slow down and try again in a few seconds."
+                        else -> 
+                            "AI Estimation failed: ${errorException?.message ?: "Unknown AI error"}"
                     }
-                    if (extras.isNotEmpty()) append(", Extras: $extras")
-                    if (validation.description.isNotEmpty()) append(", Note: ${validation.description}")
+                    _state.update { it.copy(isLoading = false, errorMessage = errorMsg) }
+                    return@launch
                 }
+
+                val nutrition = estimationResult.getOrNull()
+
+                // Handle Clarification if needed
+                if (nutrition?.isClarificationNeeded == true && nutrition.clarificationQuestions.isNotEmpty()) {
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            isClarificationNeeded = true,
+                            clarificationQuestions = nutrition.clarificationQuestions,
+                            clarificationAnswers = emptyMap() // Reset answers
+                        )
+                    }
+                    return@launch
+                }
+
+                val confidence = nutrition?.confidence ?: "medium"
+                val displayName = nutrition?.displayName ?: validation.description.take(30)
+                val items = nutrition?.items ?: emptyList()
 
                 val manualProduct = Product(
                     barcode = "manual_${System.currentTimeMillis()}",
-                    productName = validation.mealName,
-                    brand = details,
+                    productName = displayName,
+                    brand = "Manual Entry",
                     imageUrl = null,
-                    calories = 0.0, // AI will calculate after saving as per requirements
-                    protein = 0.0,
-                    carbs = 0.0,
-                    fat = 0.0,
-                    fiber = 0.0,
-                    sugars = 0.0,
+                    calories = nutrition?.calories ?: 0.0,
+                    protein = nutrition?.protein ?: 0.0,
+                    carbs = nutrition?.carbs ?: 0.0,
+                    fat = nutrition?.fat ?: 0.0,
+                    fiber = nutrition?.fiber ?: 0.0,
+                    sugars = nutrition?.sugars ?: 0.0,
                     scannedAt = Date(),
-                    quantity = 1 // Manual entries represent a whole meal/portion
+                    quantity = 1
                 )
 
                 addMealUseCase(manualProduct)
-                _state.update { it.copy(isLoading = false, isSuccess = true) }
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        isEstimating = false,
+                        showResults = true,
+                        itemizedBreakdown = items,
+                        loggedFoodName = displayName,
+                        nutritionConfidence = confidence,
+                        estimatedCalories = nutrition?.calories ?: 0.0,
+                        estimatedProtein = nutrition?.protein ?: 0.0,
+                        estimatedCarbs = nutrition?.carbs ?: 0.0,
+                        estimatedFat = nutrition?.fat ?: 0.0,
+                        estimatedFiber = nutrition?.fiber ?: 0.0,
+                        estimatedSugars = nutrition?.sugars ?: 0.0
+                    )
+                }
             } catch (e: Exception) {
-                _state.update { it.copy(isLoading = false, errorMessage = "Failed to log food: ${e.message}") }
+                _state.update { it.copy(isLoading = false, isEstimating = false, errorMessage = "Failed to log food: ${e.message}") }
             }
         }
+    }
+
+    fun dismissResults() {
+        _state.update { it.copy(showResults = false, isSuccess = true) }
     }
 }

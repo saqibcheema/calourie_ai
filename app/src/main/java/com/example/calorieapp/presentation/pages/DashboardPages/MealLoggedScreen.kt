@@ -20,6 +20,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calorieapp.domain.entities.Product
+import com.example.calorieapp.presentation.components.NutritionSummary
+import com.example.calorieapp.presentation.components.StaggeredEntry
 import com.example.calorieapp.ui.theme.*
 
 @Composable
@@ -112,110 +114,75 @@ fun MealLoggedScreen(
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
-        Text(
-            text = "MACRO SUMMARY",
-            style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 1.5.sp),
-            color = MaterialTheme.colorScheme.secondary
+        // Unified Nutrition Summary with staggered entry
+        NutritionSummary(
+            product = product,
+            modifier = Modifier.padding(bottom = 32.dp)
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                MacroCard(
-                    modifier = Modifier.weight(1f),
-                    label = "CALORIES",
-                    value = "${product.calories.toInt()} kcal",
-                    labelColor = CalorieOrange
-                )
-                MacroCard(
-                    modifier = Modifier.weight(1f),
-                    label = "PROTEIN",
-                    value = "${product.protein.toInt()}g",
-                    labelColor = ProteinRed
-                )
+        if (!isAddedToMeal) {
+            StaggeredEntry(delayMs = 500) {
+                Button(
+                    onClick = onAddToMeal,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        text = "Add to Meal",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                MacroCard(
-                    modifier = Modifier.weight(1f),
-                    label = "CARBS",
-                    value = "${product.carbs.toInt()}g",
-                    labelColor = CarbsOrange
-                )
-                MacroCard(
-                    modifier = Modifier.weight(1f),
-                    label = "FAT",
-                    value = "${product.fat.toInt()}g",
-                    labelColor = FatsBlue
-                )
-            }
         }
-        Spacer(modifier = Modifier.height(40.dp))
-        if (!isAddedToMeal) {
+
+        StaggeredEntry(delayMs = 600) {
             Button(
-                onClick = onAddToMeal,
+                onClick = onBackToDashboard,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Text(
-                    text = "Add to Meal",
+                    text = "Back to Dashboard",
                     style = MaterialTheme.typography.titleMedium
                 )
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-
-        Button(
-            onClick = onBackToDashboard,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Text(
-                text = "Back to Dashboard",
-                style = MaterialTheme.typography.titleMedium
-            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = onLogAnotherMeal,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = GhostWhite,
-                contentColor = CharcoalBlack
-            ),
-            shape = RoundedCornerShape(16.dp),
-            elevation = ButtonDefaults.buttonElevation(0.dp)
-        ) {
-            Text(
-                text = "Log Another Meal",
-                style = MaterialTheme.typography.titleMedium
-            )
+        StaggeredEntry(delayMs = 700) {
+            Button(
+                onClick = onLogAnotherMeal,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = GhostWhite,
+                    contentColor = CharcoalBlack
+                ),
+                shape = RoundedCornerShape(16.dp),
+                elevation = ButtonDefaults.buttonElevation(0.dp)
+            ) {
+                Text(
+                    text = "Log Another Meal",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
