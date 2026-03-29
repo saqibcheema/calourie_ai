@@ -135,7 +135,7 @@ Detailed documentation is available in the [`docs/`](docs/) directory:
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/your-username/calourie-ai.git
+   git clone https://github.com/saqibcheema/calourie_ai.git
    ```
 2. **Open in Android Studio**:
    - Ensure you have **Android Studio Ladybug (or newer)** installed.
