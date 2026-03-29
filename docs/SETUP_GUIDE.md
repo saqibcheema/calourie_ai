@@ -19,8 +19,8 @@ This guide covers everything needed to build, configure, and run Calourie AI loc
 ## Clone & Open
 
 ```bash
-git clone https://github.com/your-username/calourie-ai.git
-cd calourie-ai
+git clone https://github.com/saqibcheema/calourie_ai.git
+cd calourie_ai
 ```
 
 Open the project in Android Studio and let Gradle sync complete.
