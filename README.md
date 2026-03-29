@@ -114,6 +114,23 @@ app/src/main/java/com/example/calorieapp/
 
 ---
 
+## 📚 Documentation
+
+Detailed documentation is available in the [`docs/`](docs/) directory:
+
+| Document | Description |
+|---|---|
+| [Architecture Overview](docs/ARCHITECTURE.md) | System architecture, layer diagrams, data flow, and workflow sequences |
+| [API Reference](docs/API_REFERENCE.md) | Repository interfaces, remote API services, and all DTOs |
+| [Data Layer](docs/DATA_LAYER.md) | Room database schema, entities, DAOs, migrations, and mappers |
+| [Domain Layer](docs/DOMAIN_LAYER.md) | Use cases, business entities, validation, and calculation algorithms |
+| [Presentation Layer](docs/PRESENTATION_LAYER.md) | ViewModels, screens, components, and navigation |
+| [Dependency Injection](docs/DEPENDENCY_INJECTION.md) | Hilt module wiring, dependency graph, and provider details |
+| [Network & Security](docs/NETWORK_AND_SECURITY.md) | Interceptors, connectivity monitoring, and error handling |
+| [Setup Guide](docs/SETUP_GUIDE.md) | Prerequisites, API key configuration, build, and troubleshooting |
+
+---
+
 ## 🛠️ Installation & Setup
 
 1. **Clone the repository**:
