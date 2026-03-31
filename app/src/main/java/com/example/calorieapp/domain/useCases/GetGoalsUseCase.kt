@@ -8,8 +8,11 @@ import javax.inject.Inject
 class GetGoalsUseCase @Inject constructor (
     private val repository: UserRepository
 ) {
-    operator fun invoke() : Flow<DailyGoals?> {
-        val dailyGoals = repository.getGoals()
-        return dailyGoals
+    operator fun invoke(timestamp: Long? = null) : Flow<DailyGoals?> {
+        return if (timestamp == null) {
+            repository.getGoals()
+        } else {
+            repository.getGoalForDate(timestamp)
+        }
     }
 }

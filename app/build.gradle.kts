@@ -28,6 +28,7 @@ android {
             properties.load(propertiesFile.inputStream())
         }
         buildConfigField("String", "GROQ_API_KEY", "\"${properties.getProperty("GROQ_API_KEY") ?: ""}\"")
+        buildConfigField("String", "GEMINI_API_KEY", "\"${properties.getProperty("GEMINI_API_KEY") ?: ""}\"")
     }
 
     buildTypes {
@@ -55,6 +56,8 @@ android {
 
 dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    // 🆕 Google AI Generative SDK (Gemini Vision)
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
     implementation(libs.androidx.benchmark.traceprocessor.android)
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     implementation("androidx.core:core-splashscreen:1.0.1")

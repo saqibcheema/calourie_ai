@@ -21,7 +21,8 @@ import com.example.calorieapp.ui.theme.SlateGrey
 @Composable
 fun NutritionSheetContent(
     onScanClick: () -> Unit,
-    onManualEntryClick: () -> Unit = {}
+    onManualEntryClick: () -> Unit = {},
+    onAiVisionClick: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -61,7 +62,7 @@ fun NutritionSheetContent(
             subtitle = "Auto-detect using AI",
             icon = Icons.Default.CameraAlt,
             badgeText = "AI VISION",
-            onClick = { /* AI Vision ki logic yahan aayegi */ }
+            onClick = onAiVisionClick
         )
 
         Spacer(modifier = Modifier.height(12.dp))

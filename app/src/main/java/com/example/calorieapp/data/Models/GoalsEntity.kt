@@ -23,5 +23,6 @@ data class GoalsEntity (
     val calories: Int,
     val carbs: Int,
     val protein: Int,
-    val fats: Int
+    val fats: Int,
+    val createdAt: Long = System.currentTimeMillis()
 )

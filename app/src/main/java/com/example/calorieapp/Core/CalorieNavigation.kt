@@ -9,6 +9,8 @@ import com.example.calorieapp.presentation.pages.OnBoardingScreen
 import com.example.calorieapp.presentation.pages.DashboardPages.ManualEntryScreen
 
 
+import com.example.calorieapp.presentation.pages.MainScreen
+
 @Composable
 fun CalorieAppNavigation(
     startDestination : Any
@@ -22,16 +24,16 @@ fun CalorieAppNavigation(
         composable<Dest.OnBoarding>{
             OnBoardingScreen(
                 onNavigateToDashboard = {
-                    navController.navigate(Dest.Dashboard){
-                        popUpTo<Dest.Dashboard>{
+                    navController.navigate(Dest.MainScreen){
+                        popUpTo<Dest.OnBoarding>{
                             inclusive = true
                         }
                     }
                 }
             )
         }
-        composable<Dest.Dashboard>{
-            DashboardScreen(
+        composable<Dest.MainScreen>{
+            MainScreen(
                 onNavigateToManualEntry = {
                     navController.navigate(Dest.ManualEntry)
                 }

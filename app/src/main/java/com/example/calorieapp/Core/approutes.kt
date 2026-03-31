@@ -7,7 +7,13 @@ sealed interface Dest{
     data object OnBoarding : Dest
 
     @Serializable
+    data object MainScreen : Dest
+
+    @Serializable
     data object Dashboard : Dest
+
+    @Serializable
+    data object Profile : Dest
 
     @Serializable
     data object ManualEntry : Dest

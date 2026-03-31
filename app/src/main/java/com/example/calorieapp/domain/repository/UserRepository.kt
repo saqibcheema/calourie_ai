@@ -9,5 +9,6 @@ interface UserRepository {
     suspend fun saveUser(user: UserProfile, goals: DailyGoals)
     fun getUser(): Flow<UserProfile?>
     fun getGoals() : Flow<DailyGoals?>
+    fun getGoalForDate(timestamp: Long): Flow<DailyGoals?>
     fun checkUserSession() : Flow<Boolean>
 }

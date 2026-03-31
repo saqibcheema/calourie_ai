@@ -22,7 +22,7 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             checkUserSessionUseCase().collect { exists ->
                 if (exists) {
-                    _startDestination.value = Dest.Dashboard
+                    _startDestination.value = Dest.MainScreen
                 } else {
                     _startDestination.value = Dest.OnBoarding
                 }

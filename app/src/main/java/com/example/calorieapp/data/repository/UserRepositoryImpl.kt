@@ -28,7 +28,13 @@ class UserRepositoryImplementation @Inject constructor(
     }
 
     override fun getGoals() : Flow<DailyGoals?>{
-        return dao.getGoals().map{entity->
+        return dao.getLatestGoals().map{entity->
+            entity?.toDailyGoals()
+        }
+    }
+
+    override fun getGoalForDate(timestamp: Long): Flow<DailyGoals?> {
+        return dao.getGoalForDate(timestamp).map { entity ->
             entity?.toDailyGoals()
         }
     }

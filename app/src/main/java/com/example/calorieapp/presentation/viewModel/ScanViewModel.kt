@@ -104,6 +104,10 @@ class ScanViewModel @Inject constructor(
     fun clearProduct() {
         _state.update { it.copy(scannedProduct = null, isAddedToMeal = false) }
     }
+
+    fun onDismissError() {
+        _state.update { it.copy(error = null) }
+    }
 }
 
 data class ScanState(

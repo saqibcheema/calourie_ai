@@ -32,18 +32,27 @@ class DashboardViewModel @Inject constructor(
     private val updateMealQuantityUseCase: UpdateMealQuantityUseCase,
     private val deleteMealUseCase: DeleteMealUseCase
 ) : ViewModel() {
-    var dailyGoals : StateFlow<DailyGoals?> = getGoalsUseCase()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = null
-        )
-
     @SuppressLint("NewApi")
     private val _selectedDate = MutableStateFlow(LocalDate.now())
 
     @SuppressLint("NewApi")
     val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
+
+    @SuppressLint("NewApi")
+    var dailyGoals : StateFlow<DailyGoals?> = _selectedDate
+        .flatMapLatest { date -> 
+            // Convert LocalDate to the end of that day in milliseconds
+            val endOfDay = date.atTime(java.time.LocalTime.MAX)
+                .atZone(java.time.ZoneId.systemDefault())
+                .toInstant()
+                .toEpochMilli()
+            getGoalsUseCase(endOfDay)
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
 
     @SuppressLint("NewApi")
     var dailySummary : StateFlow<DailyMacrosSummary?> = _selectedDate

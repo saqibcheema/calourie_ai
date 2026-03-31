@@ -9,11 +9,15 @@ import com.example.calorieapp.data.DataSource.local.ProductDao
 import com.example.calorieapp.data.DataSource.local.ScannedProductDao
 import com.example.calorieapp.data.DataSource.local.UserDao
 import com.example.calorieapp.data.DataSource.remote.BarcodeApiService
+import com.example.calorieapp.data.DataSource.remote.GeminiVisionService
 import com.example.calorieapp.data.DataSource.remote.GroqApiService
 import com.example.calorieapp.data.repository.BarcodeRepositoryImpl
+import com.example.calorieapp.data.repository.GeminiVisionRepositoryImpl
+import com.example.calorieapp.data.repository.GeminiVisionRepositoryMock
 import com.example.calorieapp.data.repository.GroqNutritionRepositoryImpl
 import com.example.calorieapp.data.repository.UserRepositoryImplementation
 import com.example.calorieapp.domain.repository.BarcodeRepository
+import com.example.calorieapp.domain.repository.GeminiVisionRepository
 import com.example.calorieapp.domain.repository.GroqNutritionRepository
 import com.example.calorieapp.domain.repository.UserRepository
 import com.google.gson.Gson
@@ -44,7 +48,6 @@ object AppModule {
 
         val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                // Clear the cache so previously scanned items can fetch the newly scaled nutritional values
                 db.execSQL("DELETE FROM scanned_products_cache")
             }
         }
@@ -69,8 +72,7 @@ object AppModule {
             AppDatabase::class.java,
             "calorie_app_db"
         )
-            .addMigrations(MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
-            .fallbackToDestructiveMigration()
+            .addMigrations(MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, AppDatabase.MIGRATION_6_7)
             .build()
     }
 
@@ -164,4 +166,14 @@ object AppModule {
     fun provideGroqNutritionRepository(
         impl: GroqNutritionRepositoryImpl
     ): GroqNutritionRepository = impl
-}
+
+    @Provides
+    @Singleton
+    fun provideGeminiVisionService(): GeminiVisionService = GeminiVisionService()
+
+    @Provides
+    @Singleton
+    fun provideGeminiVisionRepository(
+        impl: GeminiVisionRepositoryMock   // ✅ MOCK API
+    ): GeminiVisionRepository = impl
+}

@@ -1,0 +1,111 @@
+package com.example.calorieapp.presentation.pages.DashboardPages.AiVision
+
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.calorieapp.presentation.pages.DashboardPages.AiVision.components.CameraCapture
+import com.example.calorieapp.presentation.pages.DashboardPages.AiVision.components.DetectedItemsForm
+import com.example.calorieapp.presentation.pages.DashboardPages.AiVision.components.GeminiLoadingOverlay
+import com.example.calorieapp.presentation.pages.DashboardPages.ManualEntry.components.AiLoadingOverlay
+import com.example.calorieapp.presentation.pages.DashboardPages.ManualEntry.components.AiResultsScreen
+import com.example.calorieapp.presentation.viewModel.AiVisionPhase
+import com.example.calorieapp.presentation.viewModel.AiVisionViewModel
+
+@Composable
+fun AiVisionScreen(
+    onClose: () -> Unit,
+    viewModel: AiVisionViewModel = hiltViewModel()
+) {
+    val state by viewModel.state.collectAsState()
+
+    // Trigger close when success is set
+    LaunchedEffect(state.isSuccess) {
+        if (state.isSuccess) {
+            viewModel.onClose()
+            onClose()
+        }
+    }
+
+    AnimatedContent(
+        targetState = state.phase,
+        transitionSpec = {
+            when {
+                // Moving forward: slide left
+                targetState.ordinal > initialState.ordinal ->
+                    slideInHorizontally(tween(300)) { it } + fadeIn(tween(300)) togetherWith
+                    slideOutHorizontally(tween(300)) { -it } + fadeOut(tween(200))
+
+                // Moving backward: slide right
+                else ->
+                    slideInHorizontally(tween(300)) { -it } + fadeIn(tween(300)) togetherWith
+                    slideOutHorizontally(tween(300)) { it } + fadeOut(tween(200))
+            }
+        },
+        contentAlignment = Alignment.TopStart,
+        label = "visionPhaseTransition"
+    ) { phase ->
+        when (phase) {
+
+            AiVisionPhase.CAMERA -> {
+                CameraCapture(
+                    isOffline = state.isOffline,
+                    errorMessage = state.errorMessage,
+                    onPhotoCaptured = { bitmap -> viewModel.onPhotoCaptured(bitmap) },
+                    onBackClick = {
+                        viewModel.onClose()
+                        onClose()
+                    },
+                    onErrorDismiss = { viewModel.onDismissError() }
+                )
+            }
+
+            AiVisionPhase.ANALYZING -> {
+                GeminiLoadingOverlay(capturedBitmap = state.capturedBitmap)
+            }
+
+            AiVisionPhase.QUANTITY_INPUT -> {
+                DetectedItemsForm(
+                    capturedBitmap = state.capturedBitmap,
+                    detectedItems = state.detectedItems,
+                    itemPortions = state.itemPortions,
+                    mealType = state.mealType,
+                    eatingContext = state.eatingContext,
+                    isClarificationNeeded = state.isClarificationNeeded,
+                    clarificationQuestions = state.clarificationQuestions,
+                    clarificationAnswers = state.clarificationAnswers,
+                    errorMessage = state.errorMessage,
+                    onMealTypeChange = { viewModel.onMealTypeChange(it) },
+                    onEatingContextChange = { viewModel.onEatingContextChange(it) },
+                    onPortionChanged = { name, portion -> viewModel.onPortionChanged(name, portion) },
+                    onRemoveItem = { viewModel.onRemoveItem(it) },
+                    onAddItem = { viewModel.onAddItem(it) },
+                    onSubmit = { viewModel.onSubmitForEstimation() },
+                    onClarificationAnswerChanged = { q, a -> viewModel.onClarificationAnswerChanged(q, a) },
+                    onSubmitClarifications = { viewModel.submitClarifications() },
+                    onCancelClarification = { viewModel.onCancelClarification() }
+                )
+            }
+
+            AiVisionPhase.ESTIMATING -> {
+                AiLoadingOverlay()
+            }
+
+            AiVisionPhase.RESULTS -> {
+                AiResultsScreen(
+                    foodName = state.loggedFoodName,
+                    calories = state.estimatedCalories,
+                    protein = state.estimatedProtein,
+                    carbs = state.estimatedCarbs,
+                    fat = state.estimatedFat,
+                    fiber = state.estimatedFiber,
+                    sugars = state.estimatedSugars,
+                    confidence = state.nutritionConfidence,
+                    items = state.itemizedBreakdown,
+                    onDone = { viewModel.dismissResults() }
+                )
+            }
+        }
+    }
+}

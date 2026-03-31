@@ -1,0 +1,111 @@
+package com.example.calorieapp.presentation.pages.DashboardPages.Scanner
+
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.calorieapp.presentation.components.BarcodeScannerView
+import com.example.calorieapp.presentation.components.PremiumConnectivityStatus
+import com.example.calorieapp.presentation.pages.DashboardPages.MealLoggedScreen
+import com.example.calorieapp.presentation.viewModel.ScanViewModel
+
+@Composable
+fun ScannerFeatureScreen(
+    onClose: () -> Unit,
+    scanViewModel: ScanViewModel = hiltViewModel()
+) {
+    val scanState by scanViewModel.state.collectAsState()
+    val context = LocalContext.current
+    
+    var hasCameraPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { granted -> hasCameraPermission = granted }
+    )
+
+    LaunchedEffect(Unit) {
+        scanViewModel.startScanning()
+        if (!hasCameraPermission) {
+            launcher.launch(android.Manifest.permission.CAMERA)
+        }
+    }
+
+    if (scanState.scannedProduct != null) {
+        MealLoggedScreen(
+            product = scanState.scannedProduct!!,
+            isAddedToMeal = scanState.isAddedToMeal,
+            onAddToMeal = { scanViewModel.addToMeal() },
+            onBackToDashboard = {
+                scanViewModel.clearProduct()
+                onClose()
+            },
+            onLogAnotherMeal = {
+                scanViewModel.clearProduct()
+                scanViewModel.startScanning()
+            },
+            onBackClick = {
+                scanViewModel.clearProduct()
+            }
+        )
+    } else {
+        if (hasCameraPermission) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                BarcodeScannerView(
+                    onBarcodeDetected = { barcode ->
+                        scanViewModel.onBarcodeDetected(barcode)
+                    },
+                    onBackClick = {
+                        scanViewModel.stopScanning()
+                        onClose()
+                    }
+                )
+                PremiumConnectivityStatus(isOffline = scanState.isOffline)
+            }
+        }
+    }
+
+    if (scanState.isLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f)),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        }
+    }
+
+    if (scanState.error != null) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Snackbar(
+                modifier = Modifier.padding(16.dp),
+                action = {
+                    TextButton(onClick = { scanViewModel.onDismissError() }) {
+                        Text("Dismiss", color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+            ) {
+                Text(text = scanState.error!!)
+            }
+        }
+    }
+}

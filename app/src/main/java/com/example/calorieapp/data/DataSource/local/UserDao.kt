@@ -27,6 +27,9 @@ interface UserDao {
     @Query("Select * from user_table where id = 0")
     fun getUser() : Flow<UserEntity?>
 
-    @Query("Select * from goals_table where userId = 0")
-    fun getGoals() : Flow<GoalsEntity?>
+    @Query("SELECT * FROM goals_table WHERE userId = 0 ORDER BY createdAt DESC LIMIT 1")
+    fun getLatestGoals(): Flow<GoalsEntity?>
+
+    @Query("SELECT * FROM goals_table WHERE userId = 0 AND createdAt <= :timestamp ORDER BY createdAt DESC LIMIT 1")
+    fun getGoalForDate(timestamp: Long): Flow<GoalsEntity?>
 }
