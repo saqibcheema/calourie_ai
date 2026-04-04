@@ -1,0 +1,69 @@
+# Antigravity Indexing Ignore File
+# Based on existing .gitignore and user request for faster indexing
+
+# Version Control
+.git/
+
+# Build and Output Folders
+build/
+dist/
+bin/
+out/
+/app/build/
+.gradle/
+.kotlin/
+.cxx/
+.externalNativeBuild/
+captures/
+
+# IDE and Project Files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# Dependencies
+node_modules/
+vendor/
+
+# Lock Files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+composer.lock
+Cargo.lock
+Gemfile.lock
+go.sum
+poetry.lock
+gradle-wrapper.jar
+
+# Logs and Temporaries
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+crash.log
+crash_utf8.log
+tmp/
+temp/
+
+# System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local Config
+local.properties
+
+# AI Assistant generated files (from .gitignore)
+out.txt
+test_output.txt
+implementation_plan*
+architecture_walkthrough.md
+walkthrough.md
+task.md

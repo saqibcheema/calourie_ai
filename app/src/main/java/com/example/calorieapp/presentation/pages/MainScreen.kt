@@ -83,21 +83,30 @@ fun MainScreen(
             }
         }
 
+        val hideBottomBarRoutes = listOf("scanner_route", "aivision_route")
+        val showBottomBar = currentDestination?.route in listOf("dashboard_route", "profile_route") && currentDestination?.route !in hideBottomBarRoutes
+
         // Floating bottom dock overlay
-        FloatingBottomDockWithFab(
-            currentDestination = currentDestination,
-            onNavigate = { dest ->
-                navController.navigate(dest) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
+        AnimatedVisibility(
+            visible = showBottomBar,
+            modifier = Modifier.align(Alignment.BottomCenter),
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
+        ) {
+            FloatingBottomDockWithFab(
+                currentDestination = currentDestination,
+                onNavigate = { dest ->
+                    navController.navigate(dest) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
                     }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-            },
-            onFabClick = { showNutritionSheet = true },
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
+                },
+                onFabClick = { showNutritionSheet = true }
+            )
+        }
 
         if (showNutritionSheet) {
             val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
