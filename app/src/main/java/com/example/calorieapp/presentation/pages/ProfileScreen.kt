@@ -34,8 +34,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.calorieapp.presentation.viewModel.ProfileViewModel
+import com.example.calorieapp.ui.theme.CharcoalBlack
+import com.example.calorieapp.ui.theme.GhostWhite
 import com.example.calorieapp.ui.theme.GradientBlue
 import com.example.calorieapp.ui.theme.GradientPink
+import com.example.calorieapp.ui.theme.PureWhite
+import com.example.calorieapp.ui.theme.SlateGrey
+import com.example.calorieapp.ui.theme.SuccessGreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -46,13 +51,13 @@ fun ProfileScreen(
 ) {
     val haptic = LocalHapticFeedback.current
 
-    // Premium ambient background
+    // Premium ambient background matching Dashboard
     val backgroundBrush = Brush.verticalGradient(
         colors = listOf(
-            GradientPink.copy(alpha = 0.4f),
-            GradientBlue.copy(alpha = 0.2f),
-            MaterialTheme.colorScheme.background,
-            MaterialTheme.colorScheme.background
+            GradientPink,
+            GradientBlue,
+            PureWhite,
+            PureWhite
         )
     )
 
@@ -118,8 +123,8 @@ fun SaveButtonSection(viewModel: ProfileViewModel, haptic: androidx.compose.ui.h
     )
 
     val buttonGradient = Brush.horizontalGradient(
-        colors = if (showSuccess) listOf(Color(0xFF34C759), Color(0xFF30B550))
-        else listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary.copy(alpha = 0.8f))
+        colors = if (showSuccess) listOf(SuccessGreen, SuccessGreen.copy(alpha = 0.8f))
+        else listOf(CharcoalBlack, CharcoalBlack.copy(alpha = 0.8f))
     )
 
     Box(
@@ -198,9 +203,9 @@ fun ProfileHeader() {
         Box(
             modifier = Modifier
                 .size(110.dp)
-                .border(2.dp, Color.White, CircleShape)
+                .border(2.dp, PureWhite, CircleShape)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.5f))
+                .background(PureWhite.copy(alpha = 0.5f))
                 .padding(4.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -208,14 +213,14 @@ fun ProfileHeader() {
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                    .background(GhostWhite),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Person,
                     contentDescription = "Profile Avatar",
                     modifier = Modifier.size(54.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    tint = SlateGrey.copy(alpha = 0.6f)
                 )
             }
         }
@@ -227,13 +232,13 @@ fun ProfileHeader() {
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = (-0.5).sp
             ),
-            color = MaterialTheme.colorScheme.onBackground
+            color = CharcoalBlack
         )
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = "Personalize your goals and metrics",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = SlateGrey,
             fontWeight = FontWeight.Medium
         )
     }
@@ -337,11 +342,11 @@ fun GoalSection(
                 )
 
                 val bgColor by animateColorAsState(
-                    targetValue = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    targetValue = if (isSelected) CharcoalBlack else GhostWhite,
                     animationSpec = tween(300), label = "goal_bg"
                 )
                 val textColor by animateColorAsState(
-                    targetValue = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+                    targetValue = if (isSelected) PureWhite else CharcoalBlack,
                     animationSpec = tween(300), label = "goal_text"
                 )
 
@@ -394,12 +399,12 @@ fun InteractiveRow(
     )
 
     val bgColor by animateColorAsState(
-        targetValue = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.08f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+        targetValue = if (isSelected) GhostWhite else PureWhite,
         animationSpec = tween(200), label = "bg_color"
     )
     
     val contentColor by animateColorAsState(
-        targetValue = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        targetValue = CharcoalBlack,
         animationSpec = tween(200), label = "content_color"
     )
 
@@ -414,7 +419,7 @@ fun InteractiveRow(
             .background(bgColor)
             .border(
                 width = 1.dp,
-                color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else Color.Transparent,
+                color = if (isSelected) CharcoalBlack else GhostWhite,
                 shape = RoundedCornerShape(20.dp)
             )
             .clickable(
@@ -436,14 +441,14 @@ fun InteractiveRow(
             text = title,
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
-            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+            color = CharcoalBlack,
             modifier = Modifier.weight(1f)
         )
         if (isSelected) {
             Icon(
                 imageVector = Icons.Default.CheckCircle,
                 contentDescription = "Selected",
-                tint = MaterialTheme.colorScheme.primary,
+                tint = CharcoalBlack,
                 modifier = Modifier.size(22.dp)
             )
         }
@@ -462,7 +467,7 @@ fun EditorialInputField(
         Text(
             text = label.uppercase(),
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+            color = SlateGrey,
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.sp,
             modifier = Modifier.padding(bottom = 8.dp, start = 4.dp)
@@ -471,7 +476,7 @@ fun EditorialInputField(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                .background(GhostWhite)
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -481,14 +486,14 @@ fun EditorialInputField(
                 modifier = Modifier.weight(1f),
                 textStyle = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = CharcoalBlack
                 ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
             Text(
                 text = suffix,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = SlateGrey,
                 fontWeight = FontWeight.Medium
             )
         }
@@ -510,7 +515,7 @@ fun BasicTextFieldContent(
         textStyle = textStyle,
         keyboardOptions = keyboardOptions,
         singleLine = true,
-        cursorBrush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.primary)
+        cursorBrush = androidx.compose.ui.graphics.SolidColor(CharcoalBlack)
     )
 }
 
@@ -519,12 +524,12 @@ fun SectionContainer(
     title: String,
     content: @Composable () -> Unit
 ) {
-    // Tonal Stacking instead of thick elevation
-    Surface(
+    // Dashboard matched card style
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
-        tonalElevation = 1.dp
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = PureWhite),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier.padding(24.dp)
@@ -535,7 +540,7 @@ fun SectionContainer(
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 ),
-                color = MaterialTheme.colorScheme.onBackground,
+                color = CharcoalBlack,
                 modifier = Modifier.padding(bottom = 20.dp)
             )
             content()

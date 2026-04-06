@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
@@ -48,6 +49,7 @@ data class NavItem(val route: String, val icon: ImageVector, val label: String)
 
 private val navItems = listOf(
     NavItem("dashboard_route", Icons.Default.Home, "Home"),
+    NavItem("statistics_route", Icons.AutoMirrored.Filled.TrendingUp, "Stats"),
     NavItem("profile_route", Icons.Default.Person, "Profile")
 )
 
@@ -72,6 +74,9 @@ fun MainScreen(
             composable("dashboard_route") {
                 DashboardScreen(onNavigateToManualEntry = onNavigateToManualEntry)
             }
+            composable("statistics_route") {
+                StatisticsScreen()
+            }
             composable("profile_route") {
                 ProfileScreen()
             }
@@ -84,7 +89,7 @@ fun MainScreen(
         }
 
         val hideBottomBarRoutes = listOf("scanner_route", "aivision_route")
-        val showBottomBar = currentDestination?.route in listOf("dashboard_route", "profile_route") && currentDestination?.route !in hideBottomBarRoutes
+        val showBottomBar = currentDestination?.route in listOf("dashboard_route", "profile_route", "statistics_route") && currentDestination?.route !in hideBottomBarRoutes
 
         // Floating bottom dock overlay
         AnimatedVisibility(
