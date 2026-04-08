@@ -1,7 +1,15 @@
 package com.example.calorieapp.presentation.pages
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.animation.core.EaseInOutCubic
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -64,12 +72,91 @@ fun MainScreen(
 
     var showNutritionSheet by remember { mutableStateOf(false) }
 
+    val context = LocalContext.current
+    var pendingNavigationRoute by remember { mutableStateOf<String?>(null) }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            pendingNavigationRoute?.let { route ->
+                navController.navigate(route)
+                pendingNavigationRoute = null
+            }
+        } else {
+            Toast.makeText(context, "Camera permission is required to use this feature", Toast.LENGTH_SHORT).show()
+            pendingNavigationRoute = null
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         // Main content
         NavHost(
             navController = navController,
             startDestination = "dashboard_route",
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            enterTransition = {
+                val fromRoute = initialState.destination.route
+                val toRoute = targetState.destination.route
+                val fromIndex = navItems.indexOfFirst { it.route == fromRoute }
+                val toIndex = navItems.indexOfFirst { it.route == toRoute }
+                
+                if (fromIndex != -1 && toIndex != -1) {
+                    if (toIndex > fromIndex) {
+                        slideIntoContainer(
+                            towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                            animationSpec = tween(1000, easing = FastOutSlowInEasing)
+                        ) + fadeIn(tween(1000, easing = FastOutSlowInEasing))
+                    } else {
+                        slideIntoContainer(
+                            towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                            animationSpec = tween(1000, easing = FastOutSlowInEasing)
+                        ) + fadeIn(tween(1000, easing = FastOutSlowInEasing))
+                    }
+                } else {
+                    fadeIn(tween(1000, easing = FastOutSlowInEasing))
+                }
+            },
+            exitTransition = {
+                val fromRoute = initialState.destination.route
+                val toRoute = targetState.destination.route
+                val fromIndex = navItems.indexOfFirst { it.route == fromRoute }
+                val toIndex = navItems.indexOfFirst { it.route == toRoute }
+                
+                if (fromIndex != -1 && toIndex != -1) {
+                    if (toIndex > fromIndex) {
+                        slideOutOfContainer(
+                            towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                            animationSpec = tween(1000, easing = FastOutSlowInEasing)
+                        ) + fadeOut(tween(1000, easing = FastOutSlowInEasing))
+                    } else {
+                        slideOutOfContainer(
+                            towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                            animationSpec = tween(1000, easing = FastOutSlowInEasing)
+                        ) + fadeOut(tween(1000, easing = FastOutSlowInEasing))
+                    }
+                } else {
+                    fadeOut(tween(1000, easing = FastOutSlowInEasing))
+                }
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(1000, easing = FastOutSlowInEasing)
+                ) + fadeIn(tween(1000, easing = FastOutSlowInEasing))
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(1000, easing = FastOutSlowInEasing)
+                ) + fadeOut(tween(1000, easing = FastOutSlowInEasing))
+            }
         ) {
             composable("dashboard_route") {
                 DashboardScreen(onNavigateToManualEntry = onNavigateToManualEntry)
@@ -124,7 +211,12 @@ fun MainScreen(
                 NutritionSheetContent(
                     onScanClick = {
                         showNutritionSheet = false
-                        navController.navigate("scanner_route")
+                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                            navController.navigate("scanner_route")
+                        } else {
+                            pendingNavigationRoute = "scanner_route"
+                            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                        }
                     },
                     onManualEntryClick = {
                         showNutritionSheet = false
@@ -132,7 +224,12 @@ fun MainScreen(
                     },
                     onAiVisionClick = {
                         showNutritionSheet = false
-                        navController.navigate("aivision_route")
+                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                            navController.navigate("aivision_route")
+                        } else {
+                            pendingNavigationRoute = "aivision_route"
+                            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                        }
                     }
                 )
             }
@@ -230,19 +327,29 @@ fun PillNavItem(
 ) {
     val bgColor by animateColorAsState(
         targetValue = if (isSelected) NavActiveHighlight else Color.Transparent,
-        animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing), label = "nav_bg"
+        animationSpec = spring(stiffness = 400f, dampingRatio = 0.8f), label = "nav_bg"
     )
     val iconTint by animateColorAsState(
         targetValue = if (isSelected) NavActiveIcon else NavInactiveIcon,
-        animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing), label = "nav_tint"
+        animationSpec = tween(durationMillis = 200), label = "nav_tint"
     )
     val horizontalPadding by animateDpAsState(
         targetValue = if (isSelected) 16.dp else 12.dp,
-        animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing), label = "padding_h"
+        animationSpec = spring(stiffness = 400f, dampingRatio = 0.9f), label = "padding_h"
+    )
+
+    val scale by animateFloatAsState(
+        targetValue = if (isSelected) 1.12f else 1.0f,
+        animationSpec = spring(stiffness = 500f, dampingRatio = 0.75f),
+        label = "nav_scale"
     )
 
     Row(
         modifier = Modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
             .clip(RoundedCornerShape(24.dp))
             .background(bgColor)
             .clickable(onClick = onClick)

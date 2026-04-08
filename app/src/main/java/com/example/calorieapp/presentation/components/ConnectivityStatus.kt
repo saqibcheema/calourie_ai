@@ -8,6 +8,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -17,17 +19,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.calorieapp.ui.theme.*
 
 @Composable
-fun PremiumConnectivityStatus(
-    isOffline: Boolean,
+fun PremiumStatusPill(
+    isVisible: Boolean,
+    message: String,
+    icon: ImageVector,
+    dotColor: Color,
     modifier: Modifier = Modifier
 ) {
     AnimatedVisibility(
-        visible = isOffline,
+        visible = isVisible,
         enter = fadeIn() + expandVertically(expandFrom = Alignment.Top),
         exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Top),
         modifier = modifier
@@ -38,7 +45,6 @@ fun PremiumConnectivityStatus(
                 .padding(top = 80.dp, start = 20.dp, end = 20.dp),
             contentAlignment = Alignment.TopCenter
         ) {
-            // Glassmorphic background with blur
             Surface(
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
@@ -52,18 +58,17 @@ fun PremiumConnectivityStatus(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // Pulsing Dot
-                    StatusDot(color = OfflineRed)
+                    StatusDot(color = dotColor)
 
                     Icon(
-                        imageVector = Icons.Default.WifiOff,
+                        imageVector = icon,
                         contentDescription = null,
                         tint = CharcoalBlack.copy(alpha = 0.6f),
                         modifier = Modifier.size(18.dp)
                     )
 
                     Text(
-                        text = "No Internet Connection",
+                        text = message,
                         style = AppTypography.labelLarge,
                         color = CharcoalBlack,
                         fontSize = 14.sp
@@ -72,6 +77,35 @@ fun PremiumConnectivityStatus(
             }
         }
     }
+}
+
+@Composable
+fun PremiumConnectivityStatus(
+    isOffline: Boolean,
+    modifier: Modifier = Modifier
+) {
+    PremiumStatusPill(
+        isVisible = isOffline,
+        message = "No Internet Connection",
+        icon = Icons.Default.WifiOff,
+        dotColor = OfflineRed,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun PremiumRateLimitStatus(
+    message: String?,
+    modifier: Modifier = Modifier
+) {
+    val isVisible = message != null
+    PremiumStatusPill(
+        isVisible = isVisible,
+        message = message ?: "",
+        icon = Icons.Default.Timer,
+        dotColor = Color(0xFFE6A23C), // A cautionary orange
+        modifier = modifier
+    )
 }
 
 @Composable

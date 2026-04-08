@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.example.calorieapp.ui.theme.CalorieOrange
 
 @Composable
-fun TopHeader() {
+fun TopHeader(streak: Int = 0) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -58,7 +58,7 @@ fun TopHeader() {
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))
-            Text(text = "0", fontWeight = FontWeight.Bold)
+            Text(text = streak.toString(), fontWeight = FontWeight.Bold)
         }
     }
 }

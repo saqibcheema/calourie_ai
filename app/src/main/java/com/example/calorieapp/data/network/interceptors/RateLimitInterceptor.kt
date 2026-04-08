@@ -14,6 +14,11 @@ class RateLimitInterceptor(private val cooldownMs: Long = 2000L) : Interceptor {
             throw RateLimitException()
         }
         lastRequestTime.set(now)
-        return chain.proceed(chain.request())
+        
+        val response = chain.proceed(chain.request())
+        if (response.code == 429) {
+            throw RateLimitException("API Rate Limit Exceeded. Please try again later.")
+        }
+        return response
     }
 }

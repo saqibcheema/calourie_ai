@@ -122,29 +122,7 @@ fun CameraCapture(
                 )
         )
 
-        // ── Offline banner ─────────────────────────────────────────────────────
-        if (isOffline) {
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.TopCenter)
-                    .padding(top = 80.dp, start = 20.dp, end = 20.dp),
-                shape = RoundedCornerShape(12.dp),
-                color = Color(0xFFB00020).copy(alpha = 0.9f)
-            ) {
-                Text(
-                    text = "⚡ No internet connection — photo analysis requires Wi-Fi or mobile data",
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                    style = AppTypography.labelSmall.copy(
-                        color = Color.White,
-                        fontWeight = FontWeight.Medium
-                    ),
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-
-        // ── Error banner (e.g. Gemini failed) ─────────────────────────────────
+        // ── Top gradient scrim ─────────────────────────────────────────────────
         if (!isOffline && errorMessage != null) {
             Surface(
                 modifier = Modifier

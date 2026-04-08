@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.calorieapp.presentation.components.BarcodeScannerView
 import com.example.calorieapp.presentation.components.PremiumConnectivityStatus
+import com.example.calorieapp.presentation.components.PremiumRateLimitStatus
 import com.example.calorieapp.presentation.pages.DashboardPages.MealLoggedScreen
 import com.example.calorieapp.presentation.viewModel.ScanViewModel
 
@@ -43,6 +44,13 @@ fun ScannerFeatureScreen(
         scanViewModel.startScanning()
         if (!hasCameraPermission) {
             launcher.launch(android.Manifest.permission.CAMERA)
+        }
+    }
+
+    LaunchedEffect(scanState.error) {
+        if (scanState.error != null) {
+            kotlinx.coroutines.delay(4000)
+            scanViewModel.onDismissError()
         }
     }
 
@@ -76,6 +84,7 @@ fun ScannerFeatureScreen(
                     }
                 )
                 PremiumConnectivityStatus(isOffline = scanState.isOffline)
+                PremiumRateLimitStatus(message = scanState.error)
             }
         }
     }
@@ -88,24 +97,6 @@ fun ScannerFeatureScreen(
             contentAlignment = Alignment.Center
         ) {
             CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-        }
-    }
-
-    if (scanState.error != null) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.BottomCenter
-        ) {
-            Snackbar(
-                modifier = Modifier.padding(16.dp),
-                action = {
-                    TextButton(onClick = { scanViewModel.onDismissError() }) {
-                        Text("Dismiss", color = MaterialTheme.colorScheme.primary)
-                    }
-                }
-            ) {
-                Text(text = scanState.error!!)
-            }
         }
     }
 }

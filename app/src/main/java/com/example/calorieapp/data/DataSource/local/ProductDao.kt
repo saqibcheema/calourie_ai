@@ -44,4 +44,25 @@ interface ProductDao {
     WHERE isDeleted = 0 AND date(scannedAt / 1000, 'unixepoch', 'localtime') = :currentDate
 """)
     fun getTodayTotalMacros(currentDate: String): Flow<DailyMacrosSummary?>
+
+    @Query("""
+    SELECT 
+        date(scannedAt / 1000, 'unixepoch', 'localtime') as dateString,
+        SUM(calories * quantity) as totalCalories, 
+        SUM(protein * quantity) as totalProtein, 
+        SUM(fat * quantity) as totalFats, 
+        SUM(carbs * quantity) as totalCarbs 
+    FROM scanned_products 
+    WHERE isDeleted = 0 AND date(scannedAt / 1000, 'unixepoch', 'localtime') LIKE :monthPattern
+    GROUP BY dateString
+    ORDER BY dateString ASC
+""")
+    fun getMonthlyMacros(monthPattern: String): Flow<List<com.example.calorieapp.domain.entities.DateMacroSummary>>
+    @Query("""
+        SELECT DISTINCT date(scannedAt / 1000, 'unixepoch', 'localtime') as dateString
+        FROM scanned_products
+        WHERE isDeleted = 0
+        ORDER BY dateString DESC
+    """)
+    fun getLoggedDates(): Flow<List<String>>
 }

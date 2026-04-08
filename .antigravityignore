@@ -5,12 +5,9 @@
 .git/
 
 # Build and Output Folders
-build/
 dist/
 bin/
 out/
-/app/build/
-.gradle/
 .kotlin/
 .cxx/
 .externalNativeBuild/

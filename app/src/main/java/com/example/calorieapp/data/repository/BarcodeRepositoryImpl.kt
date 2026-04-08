@@ -108,4 +108,12 @@ class BarcodeRepositoryImpl @Inject constructor(
     override suspend fun deleteProduct(barcode: String) {
         return productDao.softDeleteProduct(barcode)
     }
+
+    override fun getMonthlyMacros(monthPattern: String): Flow<List<com.example.calorieapp.domain.entities.DateMacroSummary>> {
+        return productDao.getMonthlyMacros(monthPattern)
+    }
+
+    override fun getLoggedDates(): Flow<List<String>> {
+        return productDao.getLoggedDates()
+    }
 }

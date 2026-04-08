@@ -13,4 +13,6 @@ interface BarcodeRepository {
     suspend fun updateMealQuantity(barcode: String, newQuantity: Int)
     suspend fun deleteProduct(barcode: String)
     fun getDailySummary(selectedDate: String): Flow<DailyMacrosSummary?>
+    fun getMonthlyMacros(monthPattern: String): Flow<List<com.example.calorieapp.domain.entities.DateMacroSummary>>
+    fun getLoggedDates(): Flow<List<String>>
 }

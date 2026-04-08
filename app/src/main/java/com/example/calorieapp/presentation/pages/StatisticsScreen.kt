@@ -3,48 +3,42 @@ package com.example.calorieapp.presentation.pages
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Insights
-import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.calorieapp.ui.theme.CharcoalBlack
-import com.example.calorieapp.ui.theme.GhostWhite
-import com.example.calorieapp.ui.theme.GradientBlue
-import com.example.calorieapp.ui.theme.GradientPink
-import com.example.calorieapp.ui.theme.PureWhite
-import com.example.calorieapp.ui.theme.SlateGrey
-import com.example.calorieapp.ui.theme.SuccessGreen
-import com.example.calorieapp.ui.theme.ProteinRed
-import com.example.calorieapp.ui.theme.CarbsOrange
-import com.example.calorieapp.ui.theme.FatsBlue
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.calorieapp.presentation.viewModel.StatisticsViewModel
+import com.example.calorieapp.domain.entities.DailyMacrosSummary
+import com.example.calorieapp.ui.theme.*
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
-fun StatisticsScreen() {
+fun StatisticsScreen(
+    viewModel: StatisticsViewModel = hiltViewModel()
+) {
+    val monthlyStats by viewModel.monthlyCalories.collectAsState()
+    val avgMonthlySummary by viewModel.averageMonthlySummary.collectAsState()
+    val goals by viewModel.dailyGoals.collectAsState()
+
     val backgroundBrush = Brush.verticalGradient(
-        colors = listOf(
-            GradientPink,
-            GradientBlue,
-            PureWhite,
-            PureWhite
-        )
+        colors = listOf(GradientPink, GradientBlue, PureWhite, PureWhite)
     )
 
     Box(
@@ -59,34 +53,24 @@ fun StatisticsScreen() {
             contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 40.dp, bottom = 120.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            item {
-                HeaderSection()
-            }
+            item { HeaderSection() }
 
+            // 1. Consistency Heatmap (GitHub Style)
             item {
-                StatsSummaryCards()
-            }
-
-            item {
-                WeeklyCaloriesChart()
-            }
-
-            item {
-                MacroStatsCard()
-            }
-
-            item {
-                Text(
-                    text = "Historical Insights",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = CharcoalBlack,
-                    modifier = Modifier.padding(top = 8.dp)
+                ConsistencyHeatmapSection(
+                    monthlyStats = monthlyStats,
+                    targetCalories = goals?.calories ?: 2000
                 )
             }
 
-            items(getMockInsights()) { insight ->
-                InsightItem(insight)
+            // 2. Calorie Balance Section (Refactored Axes)
+            item {
+                CalorieBalanceSection(monthlyStats, goals?.calories ?: 2000)
+            }
+
+            // 3. Goal Consistency (Renamed from Nutrition Adherence)
+            item {
+                MacroConsistencySection(avgMonthlySummary, goals)
             }
         }
     }
@@ -101,7 +85,7 @@ fun HeaderSection() {
     ) {
         Column {
             Text(
-                text = "Statistics",
+                text = "Performance",
                 style = MaterialTheme.typography.displaySmall.copy(
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 32.sp,
@@ -110,15 +94,15 @@ fun HeaderSection() {
                 color = CharcoalBlack
             )
             Text(
-                text = "Tracking your progress beautifully",
+                text = "Your journey in high-fidelity",
                 style = MaterialTheme.typography.bodyMedium,
                 color = SlateGrey
             )
         }
-        
-        Card(
+
+        Surface(
             shape = CircleShape,
-            colors = CardDefaults.cardColors(containerColor = GhostWhite),
+            color = GhostWhite,
             modifier = Modifier.size(48.dp)
         ) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -129,65 +113,171 @@ fun HeaderSection() {
 }
 
 @Composable
-fun StatsSummaryCards() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        SummaryCard(
-            modifier = Modifier.weight(1f),
-            label = "Total Weight Lost",
-            value = "3.2 kg",
-            icon = Icons.AutoMirrored.Filled.TrendingUp,
-            color = SuccessGreen
-        )
-        SummaryCard(
-            modifier = Modifier.weight(1f),
-            label = "Active Streak",
-            value = "12 Days",
-            icon = Icons.Default.CalendarMonth,
-            color = Color(0xFFFFB74D)
-        )
-    }
-}
-
-@Composable
-fun SummaryCard(
-    label: String,
-    value: String,
-    icon: ImageVector,
-    color: Color,
-    modifier: Modifier = Modifier
+fun ConsistencyHeatmapSection(
+    monthlyStats: Map<String, Double>,
+    targetCalories: Int
 ) {
+    val calendar = Calendar.getInstance()
+    val currentMonthStr = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(calendar.time)
+    val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+    
+    // Calculate start offset (0 = Monday)
+    val firstDayCal = Calendar.getInstance().apply { set(Calendar.DAY_OF_MONTH, 1) }
+    val firstDayOfWeek = firstDayCal.get(Calendar.DAY_OF_WEEK)
+    val startOffset = if (firstDayOfWeek == Calendar.SUNDAY) 6 else firstDayOfWeek - 2
+    
+    val totalCells = daysInMonth + startOffset
+    val columns = 7
+    val rows = Math.ceil(totalCells.toDouble() / columns).toInt()
+
+    val cellSize: Dp = 38.dp
+    val cellGap: Dp = 6.dp
+
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    val dayLabels = listOf("M", "T", "W", "T", "F", "S", "S")
+
     Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(containerColor = PureWhite),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .background(color.copy(alpha = 0.15f), CircleShape),
-                contentAlignment = Alignment.Center
+        Column(modifier = Modifier.padding(24.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(18.dp))
+                Icon(
+                    imageVector = Icons.Default.LocalFireDepartment,
+                    contentDescription = null,
+                    tint = CalorieOrange,
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    text = "Monthly Streak",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = CharcoalBlack
+                )
             }
+
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = currentMonthStr,
+                fontSize = 12.sp,
+                color = SlateGrey
+            )
+
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = value, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = CharcoalBlack)
-            Text(text = label, fontSize = 12.sp, color = SlateGrey, fontWeight = FontWeight.Medium)
+
+            Row(horizontalArrangement = Arrangement.spacedBy(cellGap)) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(cellGap),
+                    modifier = Modifier.padding(top = 2.dp)
+                ) {
+                    dayLabels.forEach { label ->
+                        Box(
+                            modifier = Modifier.size(width = 14.dp, height = cellSize),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            Text(
+                                text = label,
+                                fontSize = 9.sp,
+                                color = SlateGrey,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+
+                val weeks = Math.ceil(totalCells.toDouble() / 7).toInt()
+                for (week in 0 until weeks) {
+                    Column(verticalArrangement = Arrangement.spacedBy(cellGap)) {
+                        for (dayOfWeek in 0..6) {
+                            val cellIndex = week * 7 + dayOfWeek
+                            val dayNumber = cellIndex - startOffset + 1
+
+                            if (dayNumber in 1..daysInMonth) {
+                                val dateCal = Calendar.getInstance().apply { set(Calendar.DAY_OF_MONTH, dayNumber) }
+                                val dateStr = dateFormat.format(dateCal.time)
+                                val intake = monthlyStats[dateStr] ?: -1.0
+
+                                val cellColor = when {
+                                    intake < 0 -> Color.Transparent
+                                    intake == 0.0 -> GhostWhite
+                                    intake <= targetCalories * 0.30 -> DisabledGrey
+                                    intake < targetCalories -> CharcoalBlack.copy(alpha = 0.45f)
+                                    else -> CharcoalBlack
+                                }
+
+                                val hasBorder = intake < 0 || intake == 0.0
+
+                                Box(
+                                    modifier = Modifier
+                                        .size(cellSize)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .then(
+                                            if (hasBorder)
+                                                Modifier.border(
+                                                    width = 1.dp,
+                                                    color = DisabledGrey,
+                                                    shape = RoundedCornerShape(8.dp)
+                                                )
+                                            else Modifier
+                                        )
+                                        .background(cellColor),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = dayNumber.toString(),
+                                        fontSize = 12.sp,
+                                        color = if (hasBorder) SlateGrey else PureWhite,
+                                        fontWeight = if (hasBorder) FontWeight.Medium else FontWeight.Bold
+                                    )
+                                }
+                            } else {
+                                Box(modifier = Modifier.size(cellSize).background(Color.Transparent))
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ) {
+                Text("Less", fontSize = 10.sp, color = SlateGrey)
+                Spacer(modifier = Modifier.width(6.dp))
+                listOf(
+                    GhostWhite,
+                    DisabledGrey,
+                    CharcoalBlack.copy(alpha = 0.45f),
+                    CharcoalBlack
+                ).forEach { shade ->
+                    Spacer(modifier = Modifier.width(3.dp))
+                    Box(
+                        modifier = Modifier
+                            .size(12.dp)
+                            .clip(RoundedCornerShape(3.dp))
+                            .border(1.dp, DisabledGrey, RoundedCornerShape(3.dp))
+                            .background(shade)
+                    )
+                }
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("More", fontSize = 10.sp, color = SlateGrey)
+            }
         }
     }
 }
 
 @Composable
-fun WeeklyCaloriesChart() {
-    val dataPoints = listOf(1850f, 2100f, 1950f, 2400f, 2050f, 1900f, 2150f)
-    val days = listOf("M", "T", "W", "T", "F", "S", "S")
-    val maxVal = dataPoints.maxOrNull() ?: 1f
+fun CalorieBalanceSection(monthlyStats: Map<String, Double>, target: Int) {
+    val barBelowColor = CharcoalBlack
+    val barAboveColor = ProteinRed
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -197,47 +287,97 @@ fun WeeklyCaloriesChart() {
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
             Text(
-                text = "Weekly Calorie Intake",
+                text = "Calorie Balance",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = CharcoalBlack
             )
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Bottom
-            ) {
-                dataPoints.forEachIndexed { index, value ->
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        val barHeight = (value / maxVal)
-                        var animationPlayed by remember { mutableStateOf(false) }
-                        val animatedScale by animateFloatAsState(
-                            targetValue = if (animationPlayed) barHeight else 0f,
-                            animationSpec = tween(1000, easing = FastOutSlowInEasing),
-                            label = "bar_anim"
-                        )
-                        LaunchedEffect(Unit) { animationPlayed = true }
+            Spacer(modifier = Modifier.height(20.dp))
 
-                        Box(
-                            modifier = Modifier
-                                .fillMaxHeight(animatedScale)
-                                .width(12.dp)
-                                .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
-                                .background(
-                                    Brush.verticalGradient(
-                                        listOf(CharcoalBlack, CharcoalBlack.copy(alpha = 0.7f))
-                                    )
-                                )
+            val calendar = Calendar.getInstance()
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val displayFmt = SimpleDateFormat("MMM d", Locale.getDefault())
+
+            val last7 = (0..6).map {
+                val date = dateFormat.format(calendar.time)
+                calendar.add(Calendar.DAY_OF_YEAR, -1)
+                date
+            }.reversed()
+
+            val ySteps = 3
+            val yMax = target * 1.5
+
+            fun yLabel(value: Double): String = when {
+                value >= 1000 -> "${(value / 1000).toInt()}k"
+                else -> value.toInt().toString()
+            }
+
+            val chartHeight = 160.dp
+
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier
+                        .width(36.dp)
+                        .height(chartHeight),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    for (i in ySteps downTo 0) {
+                        val v = yMax * i / ySteps
+                        Text(
+                            text = yLabel(v),
+                            fontSize = 9.sp,
+                            color = SlateGrey,
+                            textAlign = TextAlign.End,
+                            modifier = Modifier.fillMaxWidth()
                         )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(text = days[index], fontSize = 11.sp, color = SlateGrey, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(chartHeight),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    last7.forEach { date ->
+                        val intake = monthlyStats[date] ?: 0.0
+                        val ratio = (intake / yMax).coerceIn(0.0, 1.0).toFloat()
+                        val display = try {
+                            val parsed = dateFormat.parse(date)
+                            if (parsed != null) displayFmt.format(parsed) else date.takeLast(5)
+                        } catch (e: Exception) {
+                            date.takeLast(5)
+                        }
+
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            val animatedRatio by animateFloatAsState(
+                                targetValue = ratio,
+                                animationSpec = tween(600, easing = EaseOutCubic),
+                                label = "barAnim"
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(0.6f)
+                                    .fillMaxHeight(animatedRatio.coerceAtLeast(0.01f))
+                                    .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
+                                    .background(if (intake > target) barAboveColor else barBelowColor)
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = display,
+                                fontSize = 8.sp,
+                                color = SlateGrey,
+                                textAlign = TextAlign.Center,
+                                maxLines = 1
+                            )
+                        }
                     }
                 }
             }
@@ -246,7 +386,10 @@ fun WeeklyCaloriesChart() {
 }
 
 @Composable
-fun MacroStatsCard() {
+fun MacroConsistencySection(
+    summary: DailyMacrosSummary?,
+    goals: com.example.calorieapp.domain.entities.DailyGoals?
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
@@ -254,101 +397,77 @@ fun MacroStatsCard() {
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.TrackChanges,
+                    contentDescription = null,
+                    tint = SuccessGreen,
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    text = "Monthly Goal Consistency",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = CharcoalBlack
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            MacroLinearProgress(
+                label = "Protein",
+                current = summary?.totalProtein ?: 0.0,
+                target = goals?.protein?.toDouble() ?: 100.0,
+                color = ProteinRed
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            MacroLinearProgress(
+                label = "Carbs",
+                current = summary?.totalCarbs ?: 0.0,
+                target = goals?.carbs?.toDouble() ?: 200.0,
+                color = CarbsOrange
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            MacroLinearProgress(
+                label = "Fats",
+                current = summary?.totalFats ?: 0.0,
+                target = goals?.fats?.toDouble() ?: 70.0,
+                color = FatsBlue
+            )
+        }
+    }
+}
+
+@Composable
+fun MacroLinearProgress(label: String, current: Double, target: Double, color: Color) {
+    val progress = (current / target).coerceIn(0.0, 1.0).toFloat()
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = tween(800, easing = EaseOutCubic),
+        label = "macroAnim"
+    )
+    Column {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(text = label, fontSize = 14.sp, color = SlateGrey)
             Text(
-                text = "Nutrient Distribution",
-                style = MaterialTheme.typography.titleMedium,
+                text = "${current.toInt()}g / ${target.toInt()}g",
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = CharcoalBlack
             )
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(100.dp)
-                        .drawWithContent {
-                            drawCircle(color = GhostWhite, radius = size.minDimension / 2, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 30f))
-                            drawArc(
-                                color = ProteinRed,
-                                startAngle = -90f,
-                                sweepAngle = 120f,
-                                useCenter = false,
-                                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 30f, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-                            )
-                            drawArc(
-                                color = CarbsOrange,
-                                startAngle = 30f,
-                                sweepAngle = 150f,
-                                useCenter = false,
-                                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 30f, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-                            )
-                            drawArc(
-                                color = FatsBlue,
-                                startAngle = 180f,
-                                sweepAngle = 90f,
-                                useCenter = false,
-                                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 30f, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-                            )
-                        }
-                )
-                
-                Spacer(modifier = Modifier.width(32.dp))
-                
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    MacroIndicator(color = ProteinRed, label = "Protein", value = "30%")
-                    MacroIndicator(color = CarbsOrange, label = "Carbohydrates", value = "45%")
-                    MacroIndicator(color = FatsBlue, label = "Healthy Fats", value = "25%")
-                }
-            }
         }
+        Spacer(modifier = Modifier.height(8.dp))
+        LinearProgressIndicator(
+            progress = { animatedProgress },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(8.dp)
+                .clip(CircleShape),
+            color = color,
+            trackColor = GhostWhite
+        )
     }
 }
-
-@Composable
-fun MacroIndicator(color: Color, label: String, value: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(color))
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text = label, fontSize = 13.sp, color = SlateGrey, modifier = Modifier.weight(1f))
-        Text(text = value, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = CharcoalBlack)
-    }
-}
-
-@Composable
-fun InsightItem(insight: Insight) {
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = GhostWhite.copy(alpha = 0.5f))
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(PureWhite, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(insight.icon, contentDescription = null, tint = CharcoalBlack, modifier = Modifier.size(20.dp))
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text(text = insight.title, fontWeight = FontWeight.Bold, color = CharcoalBlack, fontSize = 15.sp)
-                Text(text = insight.description, fontSize = 13.sp, color = SlateGrey)
-            }
-        }
-    }
-}
-
-data class Insight(val title: String, val description: String, val icon: ImageVector)
-
-fun getMockInsights(): List<Insight> = listOf(
-    Insight("Consistency Champ", "You've stayed under your calorie limit 9 times this month.", Icons.Default.Restaurant),
-    Insight("Protein Power", "Your protein intake increased by 15% since last week.", Icons.Default.Insights),
-    Insight("Weekend Warrior", "Sundays are your most active days with highest burned calories.", Icons.AutoMirrored.Filled.TrendingUp)
-)

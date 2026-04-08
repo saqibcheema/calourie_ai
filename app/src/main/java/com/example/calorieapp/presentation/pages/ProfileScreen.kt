@@ -197,49 +197,25 @@ fun SaveButtonSection(viewModel: ProfileViewModel, haptic: androidx.compose.ui.h
 @Composable
 fun ProfileHeader() {
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(
-            modifier = Modifier
-                .size(110.dp)
-                .border(2.dp, PureWhite, CircleShape)
-                .clip(CircleShape)
-                .background(PureWhite.copy(alpha = 0.5f))
-                .padding(4.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(CircleShape)
-                    .background(GhostWhite),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Person,
-                    contentDescription = "Profile Avatar",
-                    modifier = Modifier.size(54.dp),
-                    tint = SlateGrey.copy(alpha = 0.6f)
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "My Profile",
             style = MaterialTheme.typography.headlineMedium.copy(
-                fontSize = 28.sp,
+                fontSize = 32.sp,
                 fontWeight = FontWeight.ExtraBold,
                 letterSpacing = (-0.5).sp
             ),
             color = CharcoalBlack
         )
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "Personalize your goals and metrics",
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyLarge,
             color = SlateGrey,
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center
         )
     }
 }

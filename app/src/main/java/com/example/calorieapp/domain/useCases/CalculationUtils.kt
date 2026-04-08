@@ -42,11 +42,12 @@ object CalculationUtils {
         val fatGram = (weight * 0.9).roundToInt()
         val fatCals = fatGram * 9
 
-        val carbs = targetCalories - (proteinCals + fatCals)
+        val carbsCals = targetCalories - (proteinCals + fatCals)
+        val carbsGram = (carbsCals / 4.0).roundToInt()
 
         return DailyGoals(
             calories = targetCalories,
-            carbs = carbs,
+            carbs = carbsGram,
             protein = proteinGram,
             fats = fatGram
         )

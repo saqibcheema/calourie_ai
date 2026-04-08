@@ -11,6 +11,7 @@ import com.example.calorieapp.domain.useCases.GetMealsByDateUseCase
 import com.example.calorieapp.domain.useCases.GetTodayNutrimentsSummaryUseCase
 import com.example.calorieapp.domain.useCases.UpdateMealQuantityUseCase
 import com.example.calorieapp.domain.useCases.DeleteMealUseCase
+import com.example.calorieapp.domain.useCases.GetLoggedDatesUseCase
 import kotlinx.coroutines.launch
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.time.LocalDate
@@ -30,7 +32,8 @@ class DashboardViewModel @Inject constructor(
     private val getDailySummaryUseCase: GetTodayNutrimentsSummaryUseCase,
     private val getMealsByDateUseCase: GetMealsByDateUseCase,
     private val updateMealQuantityUseCase: UpdateMealQuantityUseCase,
-    private val deleteMealUseCase: DeleteMealUseCase
+    private val deleteMealUseCase: DeleteMealUseCase,
+    private val getLoggedDatesUseCase: GetLoggedDatesUseCase
 ) : ViewModel() {
     @SuppressLint("NewApi")
     private val _selectedDate = MutableStateFlow(LocalDate.now())
@@ -70,6 +73,36 @@ class DashboardViewModel @Inject constructor(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
+        )
+
+    @SuppressLint("NewApi")
+    val currentStreak: StateFlow<Int> = getLoggedDatesUseCase()
+        .map { dates ->
+            if (dates.isEmpty()) return@map 0
+            
+            val today = LocalDate.now().toString()
+            val yesterday = LocalDate.now().minusDays(1).toString()
+            
+            // If the latest log is not today or yesterday, streak is broken
+            if (dates[0] != today && dates[0] != yesterday) return@map 0
+            
+            var streak = 0
+            var checkDate = if (dates[0] == today) LocalDate.now() else LocalDate.now().minusDays(1)
+            
+            for (dateStr in dates) {
+                if (dateStr == checkDate.toString()) {
+                    streak++
+                    checkDate = checkDate.minusDays(1)
+                } else {
+                    break
+                }
+            }
+            streak
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 0
         )
 
     fun updateSelectedDate(date: LocalDate) {

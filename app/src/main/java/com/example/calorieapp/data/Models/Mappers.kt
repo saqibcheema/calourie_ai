@@ -130,3 +130,4 @@ fun Product.toScannedEntity(): ScannedProductEntity {
         scannedAt = this.scannedAt
     )
 }
+

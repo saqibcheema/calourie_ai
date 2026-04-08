@@ -30,6 +30,7 @@ fun DashboardScreen(
     val summary by viewModel.dailySummary.collectAsStateWithLifecycle()
     val dailyMeals by viewModel.dailyMeals.collectAsStateWithLifecycle()
     val selectedDate by viewModel.selectedDate.collectAsStateWithLifecycle()
+    val currentStreak by viewModel.currentStreak.collectAsStateWithLifecycle()
 
     val scrollState = rememberScrollState()
 
@@ -72,7 +73,7 @@ fun DashboardScreen(
                 .verticalScroll(scrollState)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
-            TopHeader()
+            TopHeader(streak = currentStreak)
             Spacer(modifier = Modifier.height(24.dp))
             DateSelectorRow(
                 selectedDate = selectedDate,

@@ -10,13 +10,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val saveUserUseCase: SaveUserAndCalculateGoalsUseCase
 ) : ViewModel() {
 
+    private var initialWeight: String = ""
     var gender by mutableStateOf("Male")
     var age by mutableIntStateOf(25)
     var weight by mutableStateOf("70")
@@ -35,6 +35,7 @@ class ProfileViewModel @Inject constructor(
                     gender = it.gender
                     age = it.age
                     weight = it.weight
+                    initialWeight = it.weight
                     feetForHeight = it.heightFeet
                     inchesForHeight = it.heightInches
                     activityLevel = it.activityLevel
