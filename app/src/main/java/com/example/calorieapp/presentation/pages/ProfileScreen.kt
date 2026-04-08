@@ -1,7 +1,6 @@
 package com.example.calorieapp.presentation.pages
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -61,48 +60,91 @@ fun ProfileScreen(
         )
     )
 
-    Box(
+    val visible = remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { visible.value = true }
+
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(backgroundBrush)
     ) {
+        val screenWidth = maxWidth
+        val isTablet = screenWidth > 600.dp
+        
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding(),
-            contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 40.dp, bottom = 140.dp),
-            verticalArrangement = Arrangement.spacedBy(32.dp)
+            contentPadding = PaddingValues(
+                start = if (isTablet) 48.dp else 24.dp, 
+                end = if (isTablet) 48.dp else 24.dp, 
+                top = 40.dp, 
+                bottom = 140.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            val contentModifier = if (isTablet) Modifier.widthIn(max = 600.dp) else Modifier.fillMaxWidth()
+
             item {
-                ProfileHeader()
+                AnimatedVisibility(
+                    visible = visible.value,
+                    enter = fadeIn(tween(400)) + slideInVertically(tween(400)) { -20 }
+                ) {
+                    Box(contentModifier) { ProfileHeader() }
+                }
             }
 
             item {
-                PhysicalStatsSection(viewModel = viewModel)
+                AnimatedVisibility(
+                    visible = visible.value,
+                    enter = fadeIn(tween(400, delayMillis = 100)) + slideInVertically(tween(400, delayMillis = 100)) { 20 }
+                ) {
+                    Box(contentModifier) { PhysicalStatsSection(viewModel = viewModel) }
+                }
             }
 
             item {
-                ActivityLevelSection(
-                    selectedLevel = viewModel.activityLevel,
-                    onLevelSelected = {
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        viewModel.activityLevel = it
+                AnimatedVisibility(
+                    visible = visible.value,
+                    enter = fadeIn(tween(400, delayMillis = 200)) + slideInVertically(tween(400, delayMillis = 200)) { 20 }
+                ) {
+                    Box(contentModifier) {
+                        ActivityLevelSection(
+                            selectedLevel = viewModel.activityLevel,
+                            onLevelSelected = {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                viewModel.activityLevel = it
+                            }
+                        )
                     }
-                )
+                }
             }
 
             item {
-                GoalSection(
-                    selectedGoal = viewModel.goal,
-                    onGoalSelected = {
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        viewModel.goal = it
+                AnimatedVisibility(
+                    visible = visible.value,
+                    enter = fadeIn(tween(400, delayMillis = 300)) + slideInVertically(tween(400, delayMillis = 300)) { 20 }
+                ) {
+                    Box(contentModifier) {
+                        GoalSection(
+                            selectedGoal = viewModel.goal,
+                            onGoalSelected = {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                viewModel.goal = it
+                            }
+                        )
                     }
-                )
+                }
             }
 
             item {
-                SaveButtonSection(viewModel = viewModel, haptic = haptic)
+                AnimatedVisibility(
+                    visible = visible.value,
+                    enter = fadeIn(tween(400, delayMillis = 400)) + slideInVertically(tween(400, delayMillis = 400)) { 30 }
+                ) {
+                    Box(contentModifier) { SaveButtonSection(viewModel = viewModel, haptic = haptic) }
+                }
             }
         }
     }

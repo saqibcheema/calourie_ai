@@ -14,6 +14,8 @@ import com.example.calorieapp.presentation.viewModel.AiVisionPhase
 import com.example.calorieapp.presentation.viewModel.AiVisionViewModel
 import com.example.calorieapp.presentation.components.PremiumConnectivityStatus
 import com.example.calorieapp.presentation.components.PremiumRateLimitStatus
+import com.example.calorieapp.presentation.components.CameraPermissionHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
@@ -40,6 +42,13 @@ fun AiVisionScreen(
         }
     }
 
+    var hasCameraPermission by remember { mutableStateOf(false) }
+
+    CameraPermissionHandler(
+        onPermissionGranted = { hasCameraPermission = true },
+        onClosed = { onClose() }
+    )
+
     Box(modifier = Modifier.fillMaxSize()) {
         AnimatedContent(
             targetState = state.phase,
@@ -61,16 +70,21 @@ fun AiVisionScreen(
         ) { phase ->
             when (phase) {
                 AiVisionPhase.CAMERA -> {
-                    CameraCapture(
-                        isOffline = state.isOffline,
-                        errorMessage = state.errorMessage,
-                        onPhotoCaptured = { bitmap -> viewModel.onPhotoCaptured(bitmap) },
-                        onBackClick = {
-                            viewModel.onClose()
-                            onClose()
-                        },
-                        onErrorDismiss = { viewModel.onDismissError() }
-                    )
+                    if (hasCameraPermission) {
+                        CameraCapture(
+                            isOffline = state.isOffline,
+                            errorMessage = state.errorMessage,
+                            onPhotoCaptured = { bitmap -> viewModel.onPhotoCaptured(bitmap) },
+                            onBackClick = {
+                                viewModel.onClose()
+                                onClose()
+                            },
+                            onErrorDismiss = { viewModel.onDismissError() }
+                        )
+                    } else {
+                        // Show a black screen while permission is being handled by CameraPermissionHandler
+                        Box(modifier = Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color.Black))
+                    }
                 }
 
                 AiVisionPhase.ANALYZING -> {

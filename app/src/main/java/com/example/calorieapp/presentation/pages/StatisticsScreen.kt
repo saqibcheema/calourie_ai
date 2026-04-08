@@ -4,8 +4,10 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -41,36 +43,79 @@ fun StatisticsScreen(
         colors = listOf(GradientPink, GradientBlue, PureWhite, PureWhite)
     )
 
-    Box(
+    val visible = remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { visible.value = true }
+
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(backgroundBrush)
     ) {
+        val screenWidth = maxWidth
+        val isTablet = screenWidth > 600.dp
+        
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding(),
-            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 40.dp, bottom = 120.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            contentPadding = PaddingValues(
+                start = if (isTablet) 48.dp else 20.dp, 
+                end = if (isTablet) 48.dp else 20.dp, 
+                top = 40.dp, 
+                bottom = 120.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            item { HeaderSection() }
+            val contentModifier = if (isTablet) Modifier.widthIn(max = 600.dp) else Modifier.fillMaxWidth()
+
+            item {
+                AnimatedVisibility(
+                    visible = visible.value,
+                    enter = fadeIn(tween(400)) + slideInVertically(tween(400)) { -20 }
+                ) {
+                    Box(contentModifier) { HeaderSection() }
+                }
+            }
 
             // 1. Consistency Heatmap (GitHub Style)
             item {
-                ConsistencyHeatmapSection(
-                    monthlyStats = monthlyStats,
-                    targetCalories = goals?.calories ?: 2000
-                )
+                AnimatedVisibility(
+                    visible = visible.value,
+                    enter = fadeIn(tween(400, delayMillis = 100)) + slideInVertically(tween(400, delayMillis = 100)) { 20 }
+                ) {
+                    Box(contentModifier) {
+                        ConsistencyHeatmapSection(
+                            monthlyStats = monthlyStats,
+                            targetCalories = goals?.calories ?: 2000,
+                            screenWidth = screenWidth
+                        )
+                    }
+                }
             }
 
             // 2. Calorie Balance Section (Refactored Axes)
             item {
-                CalorieBalanceSection(monthlyStats, goals?.calories ?: 2000)
+                AnimatedVisibility(
+                    visible = visible.value,
+                    enter = fadeIn(tween(400, delayMillis = 200)) + slideInVertically(tween(400, delayMillis = 200)) { 20 }
+                ) {
+                    Box(contentModifier) {
+                        CalorieBalanceSection(monthlyStats, goals?.calories ?: 2000)
+                    }
+                }
             }
 
             // 3. Goal Consistency (Renamed from Nutrition Adherence)
             item {
-                MacroConsistencySection(avgMonthlySummary, goals)
+                AnimatedVisibility(
+                    visible = visible.value,
+                    enter = fadeIn(tween(400, delayMillis = 300)) + slideInVertically(tween(400, delayMillis = 300)) { 20 }
+                ) {
+                    Box(contentModifier) {
+                        MacroConsistencySection(avgMonthlySummary, goals)
+                    }
+                }
             }
         }
     }
@@ -115,7 +160,8 @@ fun HeaderSection() {
 @Composable
 fun ConsistencyHeatmapSection(
     monthlyStats: Map<String, Double>,
-    targetCalories: Int
+    targetCalories: Int,
+    screenWidth: Dp
 ) {
     val calendar = Calendar.getInstance()
     val currentMonthStr = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(calendar.time)
@@ -127,12 +173,9 @@ fun ConsistencyHeatmapSection(
     val startOffset = if (firstDayOfWeek == Calendar.SUNDAY) 6 else firstDayOfWeek - 2
     
     val totalCells = daysInMonth + startOffset
-    val columns = 7
-    val rows = Math.ceil(totalCells.toDouble() / columns).toInt()
-
+    
     val cellSize: Dp = 38.dp
     val cellGap: Dp = 6.dp
-
     val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     val dayLabels = listOf("M", "T", "W", "T", "F", "S", "S")
 
@@ -170,7 +213,13 @@ fun ConsistencyHeatmapSection(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(cellGap)) {
+            // Scrollable row for the actual heatmap content
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(cellGap)
+            ) {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(cellGap),
                     modifier = Modifier.padding(top = 2.dp)

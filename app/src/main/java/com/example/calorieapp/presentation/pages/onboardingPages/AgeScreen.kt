@@ -1,5 +1,9 @@
-package com.example.calorieapp.presentation.pages.onBoradingPages
+package com.example.calorieapp.presentation.pages.onboardingPages
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,6 +12,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -20,6 +27,9 @@ fun AgeScreen(
     onAgeSelected: (String) -> Unit,
     onContinue: () -> Unit
 ){
+    val visible = remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { visible.value = true }
+
     Column (
         modifier = Modifier
             .fillMaxSize()
@@ -36,16 +46,23 @@ fun AgeScreen(
             text ="This will be used to calculate your personalized plan",
             color = MaterialTheme.colorScheme.secondary,
             fontSize = 18.sp,
+            lineHeight = 24.sp,
             fontWeight = FontWeight.Medium
         )
         Spacer(modifier = Modifier.weight(1f))
-        WheelPicker(
-            range = 18..100,
-            initialValue = 25,
-            onValueChange = {
-                onAgeSelected(it.toString())
-            },
-        )
+        
+        AnimatedVisibility(
+            visible = visible.value,
+            enter = fadeIn(tween(400)) + slideInVertically(tween(400)) { 20 }
+        ) {
+            WheelPicker(
+                range = 18..100,
+                initialValue = 25,
+                onValueChange = {
+                    onAgeSelected(it.toString())
+                },
+            )
+        }
         Spacer(modifier = Modifier.weight(1f))
         ContinueButton(
             onContinue = onContinue

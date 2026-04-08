@@ -1,12 +1,15 @@
 package com.example.calorieapp.presentation.pages
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -63,55 +66,114 @@ fun DashboardScreen(
         )
     )
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    val visible = remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { visible.value = true }
+
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val screenWidth = maxWidth
+        val isTablet = screenWidth > 600.dp
+        
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(backgroundBrush)
                 .statusBarsPadding()
-                .padding(horizontal = 20.dp)
-                .verticalScroll(scrollState)
+                .padding(horizontal = if (isTablet) 48.dp else 20.dp)
+                .verticalScroll(scrollState),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-            TopHeader(streak = currentStreak)
-            Spacer(modifier = Modifier.height(24.dp))
-            DateSelectorRow(
-                selectedDate = selectedDate,
-                onDateSelected = { date -> viewModel.updateSelectedDate(date) }
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-            CaloriesCard(leftCals = leftCals, progress = calProgress)
-            Spacer(modifier = Modifier.height(16.dp))
-            MacrosRow(
-                leftProtein = leftProtein,
-                proteinProgress = proteinProgress,
-                leftCarbs = leftCarbs,
-                carbsProgress = carbsProgress,
-                leftFats = leftFats,
-                fatsProgress = fatsProgress
-            )
-            Spacer(modifier = Modifier.height(32.dp))
-            Text(
-                text = "Recently uploaded",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Spacer(modifier = Modifier.height(16.dp))
+            val columnModifier = if (isTablet) Modifier.widthIn(max = 600.dp) else Modifier.fillMaxWidth()
             
-            if (dailyMeals.isEmpty()) {
-                RecentUploadPlaceholder()
-            } else {
-                dailyMeals.forEach { meal ->
-                    MealItemRow(
-                        product = meal,
-                        onIncreaseQuantity = { viewModel.increaseQuantity(meal) },
-                        onDecreaseOrDelete = { viewModel.decreaseQuantityOrDelete(meal) }
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
+            Column(modifier = columnModifier) {
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                AnimatedVisibility(
+                    visible = visible.value,
+                    enter = fadeIn(tween(400)) + slideInVertically(tween(400)) { -20 }
+                ) {
+                    TopHeader(streak = currentStreak)
                 }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                AnimatedVisibility(
+                    visible = visible.value,
+                    enter = fadeIn(tween(400, delayMillis = 100)) + slideInVertically(tween(400, delayMillis = 100)) { 20 }
+                ) {
+                    DateSelectorRow(
+                        selectedDate = selectedDate,
+                        onDateSelected = { date -> viewModel.updateSelectedDate(date) }
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                AnimatedVisibility(
+                    visible = visible.value,
+                    enter = fadeIn(tween(400, delayMillis = 200)) + slideInVertically(tween(400, delayMillis = 200)) { 30 }
+                ) {
+                    CaloriesCard(leftCals = leftCals, progress = calProgress)
+                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                AnimatedVisibility(
+                    visible = visible.value,
+                    enter = fadeIn(tween(400, delayMillis = 300)) + slideInVertically(tween(400, delayMillis = 300)) { 40 }
+                ) {
+                    MacrosRow(
+                        leftProtein = leftProtein,
+                        proteinProgress = proteinProgress,
+                        leftCarbs = leftCarbs,
+                        carbsProgress = carbsProgress,
+                        leftFats = leftFats,
+                        fatsProgress = fatsProgress
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(32.dp))
+                
+                AnimatedVisibility(
+                    visible = visible.value,
+                    enter = fadeIn(tween(400, delayMillis = 400)) + slideInVertically(tween(400, delayMillis = 400)) { 50 }
+                ) {
+                    Text(
+                        text = "Recently uploaded",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                if (dailyMeals.isEmpty()) {
+                    AnimatedVisibility(
+                        visible = visible.value,
+                        enter = fadeIn(tween(400, delayMillis = 500))
+                    ) {
+                        RecentUploadPlaceholder()
+                    }
+                } else {
+                    dailyMeals.forEachIndexed { index, meal ->
+                        AnimatedVisibility(
+                            visible = visible.value,
+                            enter = fadeIn(tween(400, delayMillis = 500 + (index * 100))) + 
+                                    slideInVertically(tween(400, delayMillis = 500 + (index * 100))) { 20 }
+                        ) {
+                            Column {
+                                MealItemRow(
+                                    product = meal,
+                                    onIncreaseQuantity = { viewModel.increaseQuantity(meal) },
+                                    onDecreaseOrDelete = { viewModel.decreaseQuantityOrDelete(meal) }
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(120.dp)) // Cushion for floating bottom dock
             }
-            Spacer(modifier = Modifier.height(120.dp)) // Cushion for floating bottom dock
         }
     }
 }

@@ -1,8 +1,14 @@
 package com.example.calorieapp.presentation.pages
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.EaseInOutQuart
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -29,11 +36,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.calorieapp.presentation.pages.onBoradingPages.ActivityLevel
-import com.example.calorieapp.presentation.pages.onBoradingPages.AgeScreen
-import com.example.calorieapp.presentation.pages.onBoradingPages.GenderScreen
-import com.example.calorieapp.presentation.pages.onBoradingPages.GoalScreen
-import com.example.calorieapp.presentation.pages.onBoradingPages.HeightAndWeight
+import com.example.calorieapp.presentation.pages.onboardingPages.ActivityLevel
+import com.example.calorieapp.presentation.pages.onboardingPages.AgeScreen
+import com.example.calorieapp.presentation.pages.onboardingPages.GenderScreen
+import com.example.calorieapp.presentation.pages.onboardingPages.GoalScreen
+import com.example.calorieapp.presentation.pages.onboardingPages.HeightAndWeight
 import com.example.calorieapp.presentation.viewModel.OnBoardingViewModel
 
 @Composable
@@ -107,57 +114,70 @@ fun OnBoardingScreen(
                 targetState = viewModel.currentStep,
                 label = "OnboardingTransition",
                 modifier = Modifier.fillMaxSize(),
-            ) {targetStep ->
-                when(targetStep){
-                    0-> GenderScreen(
-                        selectedGender = viewModel.gender,
-                        onGenderSelected = {
-                            viewModel.gender = it
-                        },
-                        onContinue = {
-                            viewModel.onNext()
-                        }
-                    )
-                    1-> AgeScreen(
-                        onAgeSelected = {
-                            viewModel.age = it.toInt()
-                        },
-                        onContinue = {
-                            viewModel.onNext()
-                        }
-                    )
-                    2-> HeightAndWeight(
-                        onFeetSelected = {
-                            viewModel.feetForHeight = it
-                        },
-                        onInchesSelected = {
-                            viewModel.inchesForHeight = it
-                        },
-                        onWeightSelected = {
-                            viewModel.weight = it
-                        },
-                        onContinue = {
-                            viewModel.onNext()
-                        }
-                    )
-                    3-> ActivityLevel(
-                        selectedActivity = viewModel.activityLevel,
-                        onActivitySelected = {
-                            viewModel.activityLevel = it
-                        },
-                        onContinue = {
-                            viewModel.onNext()
-                        }
-                    )
-                    4-> GoalScreen(
-                        selectedGoal = viewModel.goal,
-                        onGoalSelected = {
-                            viewModel.goal = it
-                        },
-                        onContinue = {
-                            viewModel.onNext(onNavigateToDashboard)
-                        },
-                    )
+                transitionSpec = {
+                    if (targetState > initialState) {
+                        // Forward animation
+                        (slideInHorizontally(animationSpec = tween(400, easing = EaseInOutQuart)) { it } + fadeIn(tween(300)))
+                            .togetherWith(slideOutHorizontally(animationSpec = tween(400, easing = EaseInOutQuart)) { -it } + fadeOut(tween(300)))
+                    } else {
+                        // Backward animation
+                        (slideInHorizontally(animationSpec = tween(400, easing = EaseInOutQuart)) { -it } + fadeIn(tween(300)))
+                            .togetherWith(slideOutHorizontally(animationSpec = tween(400, easing = EaseInOutQuart)) { it } + fadeOut(tween(300)))
+                    }
+                }
+            ) { targetStep ->
+                Box(modifier = Modifier.fillMaxSize().systemBarsPadding()) {
+                    when(targetStep){
+                        0-> GenderScreen(
+                            selectedGender = viewModel.gender,
+                            onGenderSelected = {
+                                viewModel.gender = it
+                            },
+                            onContinue = {
+                                viewModel.onNext()
+                            }
+                        )
+                        1-> AgeScreen(
+                            onAgeSelected = {
+                                viewModel.age = it.toInt()
+                            },
+                            onContinue = {
+                                viewModel.onNext()
+                            }
+                        )
+                        2-> HeightAndWeight(
+                            onFeetSelected = {
+                                viewModel.feetForHeight = it
+                            },
+                            onInchesSelected = {
+                                viewModel.inchesForHeight = it
+                            },
+                            onWeightSelected = {
+                                viewModel.weight = it
+                            },
+                            onContinue = {
+                                viewModel.onNext()
+                            }
+                        )
+                        3-> ActivityLevel(
+                            selectedActivity = viewModel.activityLevel,
+                            onActivitySelected = {
+                                viewModel.activityLevel = it
+                            },
+                            onContinue = {
+                                viewModel.onNext()
+                            }
+                        )
+                        4-> GoalScreen(
+                            selectedGoal = viewModel.goal,
+                            onGoalSelected = {
+                                viewModel.goal = it
+                            },
+                            onContinue = {
+                                viewModel.onNext(onNavigateToDashboard)
+                            },
+                        )
+                    }
                 }
             }
         }

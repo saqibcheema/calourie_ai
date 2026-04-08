@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.calorieapp.presentation.components.BarcodeScannerView
+import com.example.calorieapp.presentation.components.CameraPermissionHandler
 import com.example.calorieapp.presentation.components.PremiumConnectivityStatus
 import com.example.calorieapp.presentation.components.PremiumRateLimitStatus
 import com.example.calorieapp.presentation.pages.DashboardPages.MealLoggedScreen
@@ -29,22 +30,15 @@ fun ScannerFeatureScreen(
     val scanState by scanViewModel.state.collectAsState()
     val context = LocalContext.current
     
-    var hasCameraPermission by remember {
-        mutableStateOf(
-            ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) == android.content.pm.PackageManager.PERMISSION_GRANTED
-        )
-    }
+    var hasCameraPermission by remember { mutableStateOf(false) }
 
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { granted -> hasCameraPermission = granted }
+    CameraPermissionHandler(
+        onPermissionGranted = { hasCameraPermission = true },
+        onClosed = { onClose() }
     )
 
     LaunchedEffect(Unit) {
         scanViewModel.startScanning()
-        if (!hasCameraPermission) {
-            launcher.launch(android.Manifest.permission.CAMERA)
-        }
     }
 
     LaunchedEffect(scanState.error) {

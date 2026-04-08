@@ -1,5 +1,9 @@
-package com.example.calorieapp.presentation.pages.onBoradingPages
+package com.example.calorieapp.presentation.pages.onboardingPages
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +19,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +40,9 @@ fun HeightAndWeight(
     onContinue: () -> Unit
 ){
 
+    val visible = remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { visible.value = true }
+
     Column (
         modifier = Modifier
             .fillMaxSize()
@@ -49,16 +59,22 @@ fun HeightAndWeight(
             text ="This will be taken into account to calculate your daily nutrition goals.",
             color = MaterialTheme.colorScheme.secondary,
             fontSize = 18.sp,
+            lineHeight = 24.sp,
             fontWeight = FontWeight.Medium
         )
+        
         Spacer(modifier = Modifier.weight(1f))
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+        
+        AnimatedVisibility(
+            visible = visible.value,
+            enter = fadeIn(tween(400)) + slideInVertically(tween(400)) { 40 }
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.background),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
 
             Row(
                 modifier = Modifier
@@ -163,5 +179,6 @@ fun HeightAndWeight(
             )
         Spacer(modifier = Modifier.height(30.dp))
     }
+}
 }
 }

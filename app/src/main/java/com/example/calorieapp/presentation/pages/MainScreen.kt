@@ -9,14 +9,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
-import androidx.compose.animation.core.EaseInOutCubic
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Add
@@ -29,12 +30,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -73,89 +76,61 @@ fun MainScreen(
     var showNutritionSheet by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
-    var pendingNavigationRoute by remember { mutableStateOf<String?>(null) }
 
-    val cameraPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            pendingNavigationRoute?.let { route ->
-                navController.navigate(route)
-                pendingNavigationRoute = null
-            }
-        } else {
-            Toast.makeText(context, "Camera permission is required to use this feature", Toast.LENGTH_SHORT).show()
-            pendingNavigationRoute = null
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-        }
-    }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Main content
+        fun getRouteIndex(route: String?): Int = when(route) {
+            "dashboard_route" -> 0
+            "statistics_route" -> 1
+            "profile_route" -> 2
+            else -> -1
+        }
+
+        // Premium animation spec
+        val spec = tween<IntOffset>(
+            durationMillis = 500,
+            easing = EaseInOutCubic
+        )
+        val fadeSpec = tween<Float>(
+            durationMillis = 400,
+            easing = EaseInOutCubic
+        )
+
         NavHost(
             navController = navController,
             startDestination = "dashboard_route",
             modifier = Modifier.fillMaxSize(),
             enterTransition = {
-                val fromRoute = initialState.destination.route
-                val toRoute = targetState.destination.route
-                val fromIndex = navItems.indexOfFirst { it.route == fromRoute }
-                val toIndex = navItems.indexOfFirst { it.route == toRoute }
-                
-                if (fromIndex != -1 && toIndex != -1) {
-                    if (toIndex > fromIndex) {
-                        slideIntoContainer(
-                            towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                            animationSpec = tween(1000, easing = FastOutSlowInEasing)
-                        ) + fadeIn(tween(1000, easing = FastOutSlowInEasing))
+                val fIdx = getRouteIndex(initialState.destination.route)
+                val tIdx = getRouteIndex(targetState.destination.route)
+                if (fIdx != -1 && tIdx != -1) {
+                    if (tIdx > fIdx) {
+                        slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, spec) + fadeIn(fadeSpec)
                     } else {
-                        slideIntoContainer(
-                            towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                            animationSpec = tween(1000, easing = FastOutSlowInEasing)
-                        ) + fadeIn(tween(1000, easing = FastOutSlowInEasing))
+                        slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, spec) + fadeIn(fadeSpec)
                     }
                 } else {
-                    fadeIn(tween(1000, easing = FastOutSlowInEasing))
+                    scaleIn(initialScale = 0.92f, animationSpec = fadeSpec) + fadeIn(fadeSpec)
                 }
             },
             exitTransition = {
-                val fromRoute = initialState.destination.route
-                val toRoute = targetState.destination.route
-                val fromIndex = navItems.indexOfFirst { it.route == fromRoute }
-                val toIndex = navItems.indexOfFirst { it.route == toRoute }
-                
-                if (fromIndex != -1 && toIndex != -1) {
-                    if (toIndex > fromIndex) {
-                        slideOutOfContainer(
-                            towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                            animationSpec = tween(1000, easing = FastOutSlowInEasing)
-                        ) + fadeOut(tween(1000, easing = FastOutSlowInEasing))
+                val fIdx = getRouteIndex(initialState.destination.route)
+                val tIdx = getRouteIndex(targetState.destination.route)
+                if (fIdx != -1 && tIdx != -1) {
+                    if (tIdx > fIdx) {
+                        slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, spec) + fadeOut(fadeSpec)
                     } else {
-                        slideOutOfContainer(
-                            towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                            animationSpec = tween(1000, easing = FastOutSlowInEasing)
-                        ) + fadeOut(tween(1000, easing = FastOutSlowInEasing))
+                        slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, spec) + fadeOut(fadeSpec)
                     }
                 } else {
-                    fadeOut(tween(1000, easing = FastOutSlowInEasing))
+                    scaleOut(targetScale = 0.92f, animationSpec = fadeSpec) + fadeOut(fadeSpec)
                 }
             },
             popEnterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(1000, easing = FastOutSlowInEasing)
-                ) + fadeIn(tween(1000, easing = FastOutSlowInEasing))
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, spec) + fadeIn(fadeSpec)
             },
             popExitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(1000, easing = FastOutSlowInEasing)
-                ) + fadeOut(tween(1000, easing = FastOutSlowInEasing))
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, spec) + fadeOut(fadeSpec)
             }
         ) {
             composable("dashboard_route") {
@@ -211,12 +186,7 @@ fun MainScreen(
                 NutritionSheetContent(
                     onScanClick = {
                         showNutritionSheet = false
-                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                            navController.navigate("scanner_route")
-                        } else {
-                            pendingNavigationRoute = "scanner_route"
-                            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-                        }
+                        navController.navigate("scanner_route")
                     },
                     onManualEntryClick = {
                         showNutritionSheet = false
@@ -224,12 +194,7 @@ fun MainScreen(
                     },
                     onAiVisionClick = {
                         showNutritionSheet = false
-                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                            navController.navigate("aivision_route")
-                        } else {
-                            pendingNavigationRoute = "aivision_route"
-                            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-                        }
+                        navController.navigate("aivision_route")
                     }
                 )
             }
