@@ -29,25 +29,25 @@ Calourie AI follows **Clean Architecture** with a strict layered dependency mode
 graph TB
     subgraph Presentation["🎨 Presentation Layer"]
         direction LR
-        Screens["Compose Screens<br/>Dashboard · ManualEntry · Onboarding"]
-        VMs["ViewModels<br/>DashboardVM · ScanVM · ManualEntryVM<br/>OnBoardingVM · MainVM"]
-        Components["UI Components<br/>BarcodeScannerView · NutritionSummary<br/>WheelPicker · CalorieCard · MacroCard"]
+        Screens["Compose Screens<br/>MainScreen · Dashboard · Statistics<br/>Profile · AiVision · Scanner<br/>ManualEntry · Onboarding"]
+        VMs["ViewModels (8)<br/>DashboardVM · StatisticsVM · ProfileVM<br/>AiVisionVM · ScanVM · ManualEntryVM<br/>OnBoardingVM · MainVM"]
+        Components["UI Components<br/>BarcodeScannerView · NutritionSummary<br/>WheelPicker · CalorieCard · MacroCard<br/>FloatingBottomDock · ConnectivityStatus"]
     end
 
     subgraph Domain["⚡ Domain Layer"]
         direction LR
-        UseCases["Use Cases (12)<br/>AddMeal · DeleteMeal · ScanProduct<br/>EstimateNutrition · CalculateGoals · …"]
-        Entities["Entities<br/>Product · UserProfile<br/>DailyGoals · DailyMacrosSummary"]
+        UseCases["Use Cases (14)<br/>AddMeal · DeleteMeal · UpdateMealQty<br/>ScanProduct · EstimateNutrition<br/>AnalyzeFoodImage · CalculateGoals<br/>GetMealsByDate · GetMonthlyMacros · …"]
+        Entities["Entities<br/>Product · UserProfile<br/>DailyGoals · DailyMacrosSummary<br/>NutritionEstimate · FoodItemEstimate"]
         RepoInterfaces["Repository Interfaces<br/>BarcodeRepository<br/>UserRepository<br/>GroqNutritionRepository"]
-        Validation["Validation<br/>ManualEntryValidator"]
+        Validation["Validation<br/>ManualEntryValidator<br/>CalculationUtils (BMR/TDEE)"]
     end
 
     subgraph Data["💾 Data Layer"]
         direction LR
         RepoImpls["Implementations<br/>BarcodeRepositoryImpl<br/>UserRepositoryImpl<br/>GroqNutritionRepositoryImpl"]
         Local["Room DB (v6)<br/>ProductDao · UserDao<br/>ScannedProductDao"]
-        Remote["Remote APIs<br/>OpenFoodFacts (Retrofit)<br/>Groq AI (Retrofit)"]
-        Network["Network Layer<br/>Interceptors · Exceptions<br/>ConnectivityObserver"]
+        Remote["Remote APIs<br/>OpenFoodFacts (Retrofit)<br/>Groq AI — LLaMA 3.3 70B (Retrofit)"]
+        Network["Network Layer<br/>Interceptors · RateLimitException<br/>NoConnectivityException · ConnectivityObserver"]
     end
 
     Screens --> VMs
@@ -218,17 +218,37 @@ sequenceDiagram
 
 ## Navigation Graph
 
+### Top-Level Routes
+
 ```mermaid
 graph LR
     OnBoarding["Dest.OnBoarding<br/>Onboarding Flow"]
-    Dashboard["Dest.Dashboard<br/>Main Dashboard"]
+    MainScreen["Dest.MainScreen<br/>Bottom Nav Host"]
     ManualEntry["Dest.ManualEntry<br/>AI Meal Entry"]
 
-    OnBoarding -->|"onNavigateToDashboard()"| Dashboard
-    Dashboard -->|"onNavigateToManualEntry()"| ManualEntry
-    ManualEntry -->|"onBackClick()"| Dashboard
+    OnBoarding -->|"onNavigateToDashboard()"| MainScreen
+    MainScreen -->|"onNavigateToManualEntry()"| ManualEntry
+    ManualEntry -->|"onBackClick()"| MainScreen
+```
+
+### Inner Tab Routes (inside MainScreen)
+
+```mermaid
+graph LR
+    Dashboard["dashboard_route<br/>DashboardScreen"]
+    Statistics["statistics_route<br/>StatisticsScreen"]
+    Profile["profile_route<br/>ProfileScreen"]
+    Scanner["scanner_route<br/>ScannerFeatureScreen"]
+    AiVision["aivision_route<br/>AiVisionScreen"]
+
+    Dashboard <-->|"Bottom Dock"| Statistics
+    Statistics <-->|"Bottom Dock"| Profile
+    Dashboard -->|"FAB → Scan"| Scanner
+    Dashboard -->|"FAB → AI Vision"| AiVision
+    Scanner -->|"onClose()"| Dashboard
+    AiVision -->|"onClose()"| Dashboard
 ```
 
 **Start destination** is determined at runtime by `MainViewModel.checkUserSession()`:
-- If user exists → `Dest.Dashboard`
+- If user exists → `Dest.MainScreen`
 - If no user → `Dest.OnBoarding`
