@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Date
 import javax.inject.Inject
+import androidx.core.graphics.scale
 
 enum class AiVisionPhase {
     CAMERA,
@@ -382,12 +383,7 @@ class AiVisionViewModel @Inject constructor(
         return if (ratio >= 1f) {
             original
         } else {
-            Bitmap.createScaledBitmap(
-                original,
-                (original.width * ratio).toInt(),
-                (original.height * ratio).toInt(),
-                true
-            ).also { if (it != original) original.recycle() }
+            original.scale((original.width * ratio).toInt(), (original.height * ratio).toInt()).also { if (it != original) original.recycle() }
         }
     }
 }

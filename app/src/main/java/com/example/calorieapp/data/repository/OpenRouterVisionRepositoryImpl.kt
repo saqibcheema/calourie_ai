@@ -1,31 +1,31 @@
 package com.example.calorieapp.data.repository
 
 import android.graphics.Bitmap
-import com.example.calorieapp.data.DataSource.remote.GeminiVisionService
+import com.example.calorieapp.data.DataSource.remote.OpenRouterVisionService
 import com.example.calorieapp.data.DataSource.remote.dto.DetectedFoodItem
 import com.example.calorieapp.data.DataSource.remote.dto.VisionFoodResult
-import com.example.calorieapp.domain.repository.GeminiVisionRepository
+import com.example.calorieapp.domain.repository.OpenRouterVisionRepository
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import javax.inject.Inject
 
-class GeminiVisionRepositoryImpl @Inject constructor(
-    private val service: GeminiVisionService,
+class OpenRouterVisionRepositoryImpl @Inject constructor(
+    private val service: OpenRouterVisionService,
     private val gson: Gson
-) : GeminiVisionRepository {
+) : OpenRouterVisionRepository {
 
     override suspend fun analyzeFoodImage(bitmap: Bitmap): Result<VisionFoodResult> {
         return try {
-            val rawResponse = service.analyzeImage(bitmap)
+            val rawResponse = service.analyseImage(bitmap)
 
             if (rawResponse.isBlank()) {
-                return Result.failure(Exception("Gemini returned an empty response."))
+                return Result.failure(Exception("Vision API returned an empty response."))
             }
 
-            // Robustly extract JSON object (same pattern as GroqNutritionRepositoryImpl)
+            // Robustly extract JSON object
             val jsonMatch = Regex("\\{.*\\}", setOf(RegexOption.DOT_MATCHES_ALL)).find(rawResponse)
             val sanitizedJson = jsonMatch?.value
-                ?: return Result.failure(Exception("Could not parse Gemini response."))
+                ?: return Result.failure(Exception("Could not parse Vision API response."))
 
             val jsonObject = gson.fromJson(sanitizedJson, JsonObject::class.java)
             val itemsArray = jsonObject.getAsJsonArray("items")
@@ -43,21 +43,18 @@ class GeminiVisionRepositoryImpl @Inject constructor(
             } else {
                 Result.success(VisionFoodResult(items = items))
             }
-        } catch (e: IllegalStateException) {
-            // Triggered by our API key guard in GeminiVisionService
-            Result.failure(Exception("Gemini API key is not configured. ${e.message}"))
         } catch (e: Exception) {
             val friendlyMessage = when {
                 e.message?.contains("API_KEY_INVALID", ignoreCase = true) == true ||
                 e.message?.contains("API key not valid", ignoreCase = true) == true ->
-                    "Invalid Gemini API key. Please check your local.properties and ensure the key is correct."
+                    "Invalid OpenRouter API key."
                 e.message?.contains("RESOURCE_EXHAUSTED", ignoreCase = true) == true ||
                 e.message?.contains("quota", ignoreCase = true) == true ->
-                    "Gemini API quota exceeded. Please wait a moment or check your Google AI Studio quota."
+                    "OpenRouter API quota exceeded."
                 e.message?.contains("Unable to resolve host", ignoreCase = true) == true ||
                 e.message?.contains("timeout", ignoreCase = true) == true ->
                     "Network error. Please check your internet connection and try again."
-                else -> "Gemini Vision error: ${e.message ?: "Unknown error"}"
+                else -> "Vision error: ${e.message ?: "Unknown error"}"
             }
             Result.failure(Exception(friendlyMessage))
         }

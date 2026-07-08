@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("kotlin-kapt")
+    alias(libs.plugins.ksp)
     id("com.google.dagger.hilt.android")
     kotlin("plugin.serialization") version "2.0.21"
 }
@@ -28,6 +28,7 @@ android {
             properties.load(propertiesFile.inputStream())
         }
         buildConfigField("String", "GROQ_API_KEY", "\"${properties.getProperty("GROQ_API_KEY") ?: ""}\"")
+        buildConfigField("String", "OPENROUTER_API_KEY", "\"${properties.getProperty("OPENROUTER_API_KEY") ?: ""}\"")
         buildConfigField("String", "GEMINI_API_KEY", "\"${properties.getProperty("GEMINI_API_KEY") ?: ""}\"")
     }
 
@@ -89,13 +90,13 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
 
     implementation("com.google.dagger:hilt-android:2.51.1")
-    kapt("com.google.dagger:hilt-android-compiler:2.51.1")
+    ksp("com.google.dagger:hilt-android-compiler:2.51.1")
 
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     implementation("androidx.room:room-runtime:2.6.0")
     implementation("androidx.room:room-ktx:2.6.0") // KTX extensions (Coroutines support ke liye zaroori)
-    kapt("androidx.room:room-compiler:2.6.0")
+    ksp("androidx.room:room-compiler:2.6.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.example.calorieapp.ui.theme.AppTypography
-import java.util.concurrent.Executors
 
 @Composable
 fun CameraCapture(
@@ -48,12 +47,6 @@ fun CameraCapture(
     var isTakingPhoto by remember { mutableStateOf(false) }
     var cameraControl: CameraControl? by remember { mutableStateOf(null) }
     val imageCaptureRef = remember { mutableStateOf<ImageCapture?>(null) }
-
-    val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
-
-    DisposableEffect(Unit) {
-        onDispose { cameraExecutor.shutdown() }
-    }
 
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
 
@@ -224,7 +217,7 @@ fun CameraCapture(
                     isTakingPhoto = true
 
                     imageCapture.takePicture(
-                        cameraExecutor,
+                        ContextCompat.getMainExecutor(context),
                         object : ImageCapture.OnImageCapturedCallback() {
                             override fun onCaptureSuccess(image: ImageProxy) {
                                 // Use CameraX built-in toBitmap() — handles YUV/JPEG format correctly

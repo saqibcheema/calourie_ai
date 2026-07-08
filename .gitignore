@@ -24,3 +24,8 @@ test_output.txt
 implementation_plan*
 architecture_walkthrough.md
 walkthrough.md
+
+# Unnecessary files
+.antigravitycli/
+.idea/inspectionProfiles/
+.idea/studiobot.xml

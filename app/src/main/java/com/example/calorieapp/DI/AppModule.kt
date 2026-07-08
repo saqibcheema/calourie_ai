@@ -4,22 +4,28 @@ import android.content.Context
 import androidx.room.Room
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.example.calorieapp.BuildConfig
 import com.example.calorieapp.data.DataSource.local.AppDatabase
 import com.example.calorieapp.data.DataSource.local.ProductDao
 import com.example.calorieapp.data.DataSource.local.ScannedProductDao
 import com.example.calorieapp.data.DataSource.local.UserDao
 import com.example.calorieapp.data.DataSource.remote.BarcodeApiService
-import com.example.calorieapp.data.DataSource.remote.GeminiVisionService
 import com.example.calorieapp.data.DataSource.remote.GroqApiService
+import com.example.calorieapp.data.DataSource.remote.OpenRouterApiService
+import com.example.calorieapp.data.network.interceptors.GroqAuthInterceptor
+import com.example.calorieapp.data.network.interceptors.NetworkConnectionInterceptor
+import com.example.calorieapp.data.network.interceptors.OpenRouterAuthInterceptor
+import com.example.calorieapp.data.network.interceptors.RateLimitInterceptor
 import com.example.calorieapp.data.repository.BarcodeRepositoryImpl
-import com.example.calorieapp.data.repository.GeminiVisionRepositoryImpl
-import com.example.calorieapp.data.repository.GeminiVisionRepositoryMock
+import com.example.calorieapp.data.repository.OpenRouterVisionRepositoryImpl
 import com.example.calorieapp.data.repository.GroqNutritionRepositoryImpl
 import com.example.calorieapp.data.repository.UserRepositoryImplementation
 import com.example.calorieapp.domain.repository.BarcodeRepository
-import com.example.calorieapp.domain.repository.GeminiVisionRepository
+import com.example.calorieapp.domain.repository.OpenRouterVisionRepository
 import com.example.calorieapp.domain.repository.GroqNutritionRepository
 import com.example.calorieapp.domain.repository.UserRepository
+import com.example.calorieapp.util.ConnectivityObserver
+import com.example.calorieapp.util.NetworkConnectivityObserver
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
@@ -30,6 +36,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 
@@ -114,10 +121,10 @@ object AppModule {
     @Singleton
     fun provideBarcodeApi(@ApplicationContext context: Context): BarcodeApiService {
         val client = OkHttpClient.Builder()
-            .addInterceptor(com.example.calorieapp.data.network.interceptors.NetworkConnectionInterceptor(context))
-            .addInterceptor(com.example.calorieapp.data.network.interceptors.RateLimitInterceptor())
-            .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
-            .readTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+            .addInterceptor(NetworkConnectionInterceptor(context))
+            .addInterceptor(RateLimitInterceptor())
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
             .build()
             
         return Retrofit.Builder()
@@ -130,8 +137,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideConnectivityObserver(@ApplicationContext context: Context): com.example.calorieapp.util.ConnectivityObserver {
-        return com.example.calorieapp.util.NetworkConnectivityObserver(context)
+    fun provideConnectivityObserver(@ApplicationContext context: Context): ConnectivityObserver {
+        return NetworkConnectivityObserver(context)
     }
 
     @Provides
@@ -145,12 +152,12 @@ object AppModule {
             level = HttpLoggingInterceptor.Level.BODY
         }
         val client = OkHttpClient.Builder()
-            .addInterceptor(com.example.calorieapp.data.network.interceptors.NetworkConnectionInterceptor(context))
-            .addInterceptor(com.example.calorieapp.data.network.interceptors.RateLimitInterceptor())
-            .addInterceptor(com.example.calorieapp.data.network.interceptors.GroqAuthInterceptor(com.example.calorieapp.BuildConfig.GROQ_API_KEY))
+            .addInterceptor(NetworkConnectionInterceptor(context))
+            .addInterceptor(RateLimitInterceptor())
+            .addInterceptor(GroqAuthInterceptor(BuildConfig.GROQ_API_KEY))
             .addInterceptor(logging)
-            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-            .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
             .build()
             
         return Retrofit.Builder()
@@ -163,17 +170,34 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideOpenRouterApi(@ApplicationContext context : Context) : OpenRouterApiService{
+         val client = OkHttpClient.Builder()
+            .addInterceptor(NetworkConnectionInterceptor(context))
+            .addInterceptor(RateLimitInterceptor())
+            .addInterceptor(OpenRouterAuthInterceptor(BuildConfig.OPENROUTER_API_KEY))
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .build()
+
+        return Retrofit.Builder()
+            .baseUrl("https://openrouter.ai/api/v1/")
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(OpenRouterApiService::class.java)
+    }
+
+
+
+    @Provides
+    @Singleton
     fun provideGroqNutritionRepository(
         impl: GroqNutritionRepositoryImpl
     ): GroqNutritionRepository = impl
 
     @Provides
     @Singleton
-    fun provideGeminiVisionService(): GeminiVisionService = GeminiVisionService()
-
-    @Provides
-    @Singleton
-    fun provideGeminiVisionRepository(
-        impl: GeminiVisionRepositoryImpl   // ✅ REAL Gemini Vision API
-    ): GeminiVisionRepository = impl
+    fun provideOpenRouterVisionRepository(
+        impl: OpenRouterVisionRepositoryImpl   
+    ): OpenRouterVisionRepository = impl
 }
