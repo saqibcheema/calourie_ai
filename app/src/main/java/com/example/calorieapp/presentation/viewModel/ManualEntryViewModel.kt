@@ -26,6 +26,7 @@ data class ManualEntryState(
     val isClarificationNeeded: Boolean = false,
     val clarificationQuestions: List<ClarificationQuestion> = emptyList(),
     val clarificationAnswers: Map<String, String> = emptyMap(), // Maps question to user's answer
+    val clarificationAttempts: Int = 0, // Safety: track how many times clarification was attempted
 
     // ── Loading / result state ──────────────────────────────────────────
     val isLoading: Boolean = false,
@@ -91,7 +92,8 @@ class ManualEntryViewModel @Inject constructor(
                 mealDescription = newDescription,
                 isClarificationNeeded = false,
                 clarificationQuestions = emptyList(),
-                clarificationAnswers = emptyMap()
+                clarificationAnswers = emptyMap(),
+                clarificationAttempts = it.clarificationAttempts + 1  // Track attempts
             )
         }
         
@@ -162,8 +164,9 @@ class ManualEntryViewModel @Inject constructor(
 
                 val nutrition = estimationResult.getOrNull()
 
-                // Handle Clarification if needed
-                if (nutrition?.isClarificationNeeded == true && nutrition.clarificationQuestions.isNotEmpty()) {
+                // Handle Clarification if needed (max 1 attempt to prevent infinite loop)
+                if (nutrition?.isClarificationNeeded == true && nutrition.clarificationQuestions.isNotEmpty()
+                    && _state.value.clarificationAttempts == 0) {
                     _state.update {
                         it.copy(
                             isLoading = false,

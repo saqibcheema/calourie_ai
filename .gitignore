@@ -29,3 +29,10 @@ walkthrough.md
 .antigravitycli/
 .idea/inspectionProfiles/
 .idea/studiobot.xml
+
+# Test / scratch scripts (not part of the app)
+test_openrouter.js
+*.test.js
+
+# Temporary architecture / planning docs
+ADMIN_DASHBOARD_ARCHITECTURE.md

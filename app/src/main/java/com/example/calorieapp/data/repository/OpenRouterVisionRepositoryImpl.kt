@@ -22,7 +22,6 @@ class OpenRouterVisionRepositoryImpl @Inject constructor(
                 return Result.failure(Exception("Vision API returned an empty response."))
             }
 
-            // Robustly extract JSON object
             val jsonMatch = Regex("\\{.*\\}", setOf(RegexOption.DOT_MATCHES_ALL)).find(rawResponse)
             val sanitizedJson = jsonMatch?.value
                 ?: return Result.failure(Exception("Could not parse Vision API response."))

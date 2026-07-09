@@ -198,6 +198,6 @@ object AppModule {
     @Provides
     @Singleton
     fun provideOpenRouterVisionRepository(
-        impl: OpenRouterVisionRepositoryImpl   
+        impl: OpenRouterVisionRepositoryImpl
     ): OpenRouterVisionRepository = impl
 }

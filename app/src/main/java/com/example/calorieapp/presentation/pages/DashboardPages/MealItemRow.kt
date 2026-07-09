@@ -41,18 +41,28 @@ fun MealItemRow(
 ) {
     val haptics = LocalHapticFeedback.current
 
+    // Track if item will be deleted vs just quantity decreased
+    val willDelete = product.quantity <= 1
+
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = {
             if (it == SwipeToDismissBoxValue.EndToStart) {
                 haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                 onDecreaseOrDelete()
-                true
+                willDelete 
             } else {
                 false
             }
         },
         positionalThreshold = { distance -> distance * 0.5f }
     )
+
+    // Reset swipe state after quantity decrease (so red doesn't stay stuck)
+    LaunchedEffect(product.quantity) {
+        if (dismissState.currentValue != SwipeToDismissBoxValue.Settled) {
+            dismissState.reset()
+        }
+    }
 
     SwipeToDismissBox(
         state = dismissState,

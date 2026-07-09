@@ -1,7 +1,7 @@
 package com.example.calorieapp.data.DataSource.remote.dto
 
 data class OpenRouterVisionRequest(
-    val model: String = "google/gemini-2.0-flash-exp:free",
+    val model: String = "google/gemini-2.5-flash-lite",
     val messages : List<OpenRouterMessage>
 )
 
