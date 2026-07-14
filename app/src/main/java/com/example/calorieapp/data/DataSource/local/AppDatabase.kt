@@ -10,7 +10,9 @@ import com.example.calorieapp.data.Models.*
         UserEntity::class,
         GoalsEntity::class,
         ProductEntity::class,
-        ScannedProductEntity::class
+        ScannedProductEntity::class,
+        SubscriptionStatus::class,
+        UserDailyRequest::class
         // WeightHistoryEntity removed — migrated out in v9
     ],
     version = 9,
@@ -21,6 +23,9 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun ProductDao(): ProductDao
     abstract fun scannedProductDao(): ScannedProductDao
+    abstract fun userStatusDao(): UserStatusDao
+    abstract fun dailyRequestsDao(): DailyRequestsDao
+
 
     companion object {
         val MIGRATION_6_7 = object : Migration(6, 7) {

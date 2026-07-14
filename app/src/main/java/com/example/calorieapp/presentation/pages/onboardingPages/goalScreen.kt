@@ -4,11 +4,15 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,40 +41,51 @@ fun GoalScreen(
             .fillMaxSize()
             .padding(horizontal = 30.dp)
     ){
-        Text(
-            text ="What is your goal?",
-            color = MaterialTheme.colorScheme.primary,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text ="This helps us generate a plan for your calorie intake.",
-            color = MaterialTheme.colorScheme.secondary,
-            fontSize = 18.sp,
-            lineHeight = 24.sp
-        )
-        Spacer(modifier = Modifier.weight(1f))
-        
-        activityLevelList.forEachIndexed { index, it ->
-            AnimatedVisibility(
-                visible = visible.value,
-                enter = fadeIn(tween(delayMillis = index * 100)) + 
-                        slideInVertically(tween(delayMillis = index * 100)) { 20 }
-            ) {
-                CustomOptionButton(
-                    text = it,
-                    isSelected = it == selectedGoal,
-                    onClick = {
-                        onGoalSelected(it)
-                    }
-                )
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Text(
+                text ="What is your goal?",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text ="This helps us generate a plan for your calorie intake.",
+                color = MaterialTheme.colorScheme.secondary,
+                fontSize = 18.sp,
+                lineHeight = 24.sp
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            activityLevelList.forEachIndexed { index, it ->
+                AnimatedVisibility(
+                    visible = visible.value,
+                    enter = fadeIn(tween(delayMillis = index * 100)) + 
+                            slideInVertically(tween(delayMillis = index * 100)) { 20 }
+                ) {
+                    CustomOptionButton(
+                        text = it,
+                        isSelected = it == selectedGoal,
+                        onClick = {
+                            onGoalSelected(it)
+                        }
+                    )
+                }
             }
         }
-        Spacer(modifier = Modifier.weight(1f))
-        ContinueButton(
-            onContinue = onContinue
-        )
-        Spacer(modifier = Modifier.height(30.dp))
+        
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp, bottom = 30.dp)
+        ) {
+            ContinueButton(
+                onContinue = onContinue
+            )
+        }
     }
 }

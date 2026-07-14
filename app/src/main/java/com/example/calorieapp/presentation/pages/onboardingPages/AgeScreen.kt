@@ -4,11 +4,15 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,38 +39,49 @@ fun AgeScreen(
             .fillMaxSize()
             .padding(horizontal = 30.dp)
     ){
-        Text(
-            text ="What is your Age?",
-            color = MaterialTheme.colorScheme.primary,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text ="This will be used to calculate your personalized plan",
-            color = MaterialTheme.colorScheme.secondary,
-            fontSize = 18.sp,
-            lineHeight = 24.sp,
-            fontWeight = FontWeight.Medium
-        )
-        Spacer(modifier = Modifier.weight(1f))
-        
-        AnimatedVisibility(
-            visible = visible.value,
-            enter = fadeIn(tween(400)) + slideInVertically(tween(400)) { 20 }
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
         ) {
-            WheelPicker(
-                range = 18..100,
-                initialValue = 25,
-                onValueChange = {
-                    onAgeSelected(it.toString())
-                },
+            Text(
+                text ="What is your Age?",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text ="This will be used to calculate your personalized plan",
+                color = MaterialTheme.colorScheme.secondary,
+                fontSize = 18.sp,
+                lineHeight = 24.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            AnimatedVisibility(
+                visible = visible.value,
+                enter = fadeIn(tween(400)) + slideInVertically(tween(400)) { 20 }
+            ) {
+                WheelPicker(
+                    range = 18..100,
+                    initialValue = 25,
+                    onValueChange = {
+                        onAgeSelected(it.toString())
+                    },
+                )
+            }
+        }
+        
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp, bottom = 30.dp)
+        ) {
+            ContinueButton(
+                onContinue = onContinue
             )
         }
-        Spacer(modifier = Modifier.weight(1f))
-        ContinueButton(
-            onContinue = onContinue
-        )
-        Spacer(modifier = Modifier.height(30.dp))
     }
 }

@@ -116,11 +116,9 @@ fun OnBoardingScreen(
                 modifier = Modifier.fillMaxSize(),
                 transitionSpec = {
                     if (targetState > initialState) {
-                        // Forward animation
                         (slideInHorizontally(animationSpec = tween(400, easing = EaseInOutQuart)) { it } + fadeIn(tween(300)))
                             .togetherWith(slideOutHorizontally(animationSpec = tween(400, easing = EaseInOutQuart)) { -it } + fadeOut(tween(300)))
                     } else {
-                        // Backward animation
                         (slideInHorizontally(animationSpec = tween(400, easing = EaseInOutQuart)) { -it } + fadeIn(tween(300)))
                             .togetherWith(slideOutHorizontally(animationSpec = tween(400, easing = EaseInOutQuart)) { it } + fadeOut(tween(300)))
                     }

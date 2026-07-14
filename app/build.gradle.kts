@@ -60,6 +60,7 @@ dependencies {
     // 🆕 Google AI Generative SDK (Gemini Vision)
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
     implementation(libs.androidx.benchmark.traceprocessor.android)
+    implementation(libs.androidx.room3.common.jvm)
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     implementation("androidx.core:core-splashscreen:1.0.1")
     val nav_version = "2.9.7"

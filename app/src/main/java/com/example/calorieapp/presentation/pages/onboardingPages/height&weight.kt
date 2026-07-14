@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -48,137 +50,148 @@ fun HeightAndWeight(
             .fillMaxSize()
             .padding(horizontal = 30.dp)
     ){
-        Text(
-            text ="Height & Weight",
-            color = MaterialTheme.colorScheme.primary,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text ="This will be taken into account to calculate your daily nutrition goals.",
-            color = MaterialTheme.colorScheme.secondary,
-            fontSize = 18.sp,
-            lineHeight = 24.sp,
-            fontWeight = FontWeight.Medium
-        )
-        
-        Spacer(modifier = Modifier.weight(1f))
-        
-        AnimatedVisibility(
-            visible = visible.value,
-            enter = fadeIn(tween(400)) + slideInVertically(tween(400)) { 40 }
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.background),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Text(
+                text ="Height & Weight",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text ="This will be taken into account to calculate your daily nutrition goals.",
+                color = MaterialTheme.colorScheme.secondary,
+                fontSize = 18.sp,
+                lineHeight = 24.sp,
+                fontWeight = FontWeight.Medium
+            )
+            
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            AnimatedVisibility(
+                visible = visible.value,
+                enter = fadeIn(tween(400)) + slideInVertically(tween(400)) { 40 }
             ) {
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp)
-            ) {
-                Text(
-                    text = "Height",
-                    fontSize = 24.sp,
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = "Weight",
-                    fontSize = 24.sp,
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-
-                Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.Center
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.background),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .height(60.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.surface)
+    
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp)
+                ) {
+                    Text(
+                        text = "Height",
+                        fontSize = 24.sp,
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
                     )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
+                    Text(
+                        text = "Weight",
+                        fontSize = 24.sp,
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+    
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+    
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(modifier = Modifier.weight(1f)) {
-                            WheelPicker(
-                                range = 2..8,
-                                initialValue = 5,
-                                onValueChange = {
-                                    onFeetSelected(it)
-                                },
-                                itemsShowOnScreen = 7,
-                                itemUnit = " ft"
-                            )
-                        }
-
-                        Box(modifier = Modifier.weight(1f)) {
-                            WheelPicker(
-                                range = 0..11,
-                                initialValue = 6,
-                                onValueChange = {
-                                    onInchesSelected(it)
-                                },
-                                itemsShowOnScreen = 7,
-                                itemUnit = " in"
-                            )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(0.9f)
+                                .height(60.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.surface)
+                        )
+    
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Box(modifier = Modifier.weight(1f)) {
+                                WheelPicker(
+                                    range = 2..8,
+                                    initialValue = 5,
+                                    onValueChange = {
+                                        onFeetSelected(it)
+                                    },
+                                    itemsShowOnScreen = 7,
+                                    itemUnit = " ft"
+                                )
+                            }
+    
+                            Box(modifier = Modifier.weight(1f)) {
+                                WheelPicker(
+                                    range = 0..11,
+                                    initialValue = 6,
+                                    onValueChange = {
+                                        onInchesSelected(it)
+                                    },
+                                    itemsShowOnScreen = 7,
+                                    itemUnit = " in"
+                                )
+                            }
                         }
                     }
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
+    
+                    Spacer(modifier = Modifier.width(16.dp))
+    
                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .height(60.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.surface)
-                    )
-
-                    WheelPicker(
-                        range = 30..200,
-                        initialValue = 78,
-                        onValueChange = {
-                            onWeightSelected(it)
-                        },
-                        itemsShowOnScreen = 7,
-                        itemUnit = " kg"
-                    )
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(0.9f)
+                                .height(60.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.surface)
+                        )
+    
+                        WheelPicker(
+                            range = 30..200,
+                            initialValue = 78,
+                            onValueChange = {
+                                onWeightSelected(it)
+                            },
+                            itemsShowOnScreen = 7,
+                            itemUnit = " kg"
+                        )
+                    }
                 }
             }
-        Spacer(modifier = Modifier.weight(1f))
+        }
+        }
+        
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp, bottom = 30.dp)
+        ) {
             ContinueButton(
                 onContinue = onContinue
             )
-        Spacer(modifier = Modifier.height(30.dp))
+        }
     }
-}
-}
 }
