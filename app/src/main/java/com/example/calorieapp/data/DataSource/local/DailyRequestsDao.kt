@@ -5,11 +5,15 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.calorieapp.data.Models.UserDailyRequest
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface DailyRequestsDao{
     @Query("SELECT * FROM user_daily_request WHERE id = 1")
     suspend fun getDailyRequests(): UserDailyRequest?
+
+    @Query("SELECT * FROM user_daily_request WHERE id = 1")
+    fun getDailyRequestsFlow(): Flow<UserDailyRequest?>
 
     @Query("UPDATE user_daily_request SET aiVisionRequestUsed = aiVisionRequestUsed + 1 WHERE id = 1")
     suspend fun updateAiVisionRequest()

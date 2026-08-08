@@ -5,11 +5,13 @@ import com.example.calorieapp.data.DataSource.remote.dto.OpenRouterContent
 import com.example.calorieapp.data.DataSource.remote.dto.OpenRouterImageUrl
 import com.example.calorieapp.data.DataSource.remote.dto.OpenRouterMessage
 import com.example.calorieapp.data.DataSource.remote.dto.OpenRouterVisionRequest
+import com.example.calorieapp.util.RemoteConfigHelper
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
 class OpenRouterVisionService @Inject constructor(
-    private val api : OpenRouterApiService
+    private val api : OpenRouterApiService,
+    private val remoteConfigHelper: RemoteConfigHelper
 ){
     private val systemPrompt = """
     You are an expert food recognition engine specializing in Pakistani, South Asian, and international cuisines.
@@ -72,6 +74,7 @@ class OpenRouterVisionService @Inject constructor(
 
         val imageUrlData = "data:image/jpeg;base64,$base64String"
         val request = OpenRouterVisionRequest(
+            model = remoteConfigHelper.getOpenRouterModelName(),
             messages = listOf(
                 OpenRouterMessage(
                     role = "user",

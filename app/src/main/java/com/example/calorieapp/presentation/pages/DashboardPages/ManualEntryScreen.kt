@@ -21,6 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.calorieapp.presentation.components.LimitIndicatorBadge
+import com.example.calorieapp.presentation.components.PremiumRequiredDialog
 import com.example.calorieapp.presentation.pages.DashboardPages.ManualEntry.components.*
 import com.example.calorieapp.presentation.viewModel.ManualEntryViewModel
 import com.example.calorieapp.ui.theme.*
@@ -52,6 +54,14 @@ fun ManualEntryScreen(
                     navigationIcon = {
                         IconButton(onClick = onBackClick) {
                             Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        }
+                    },
+                    actions = {
+                        state.remainingLimits?.let { limits ->
+                            LimitIndicatorBadge(
+                                remaining = limits.remainingManualEntries,
+                                modifier = Modifier.padding(end = 16.dp)
+                            )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
@@ -287,4 +297,13 @@ fun ManualEntryScreen(
             )
         }
     }
+    
+    PremiumRequiredDialog(
+        showDialog = state.isLimitReached,
+        onDismiss = { viewModel.dismissLimitDialog() },
+        onUpgradeClick = { 
+            // TODO: Navigate to Premium screen
+            viewModel.dismissLimitDialog()
+        }
+    )
 }

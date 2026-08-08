@@ -15,7 +15,7 @@ import com.example.calorieapp.data.Models.*
         UserDailyRequest::class
         // WeightHistoryEntity removed — migrated out in v9
     ],
-    version = 9,
+    version = 10,
     exportSchema = false
 )
 @TypeConverters(DateConverter::class)
@@ -44,6 +44,13 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 // Weight tracking feature removed — drop the table cleanly
                 db.execSQL("DROP TABLE IF EXISTS `weight_history`")
+            }
+        }
+
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS `subscription_status` (`id` INTEGER NOT NULL, `tierType` TEXT NOT NULL, `expiryDate` TEXT NOT NULL, `token` TEXT, PRIMARY KEY(`id`))")
+                db.execSQL("CREATE TABLE IF NOT EXISTS `user_daily_request` (`id` INTEGER NOT NULL, `currentDate` TEXT NOT NULL, `aiVisionRequestUsed` INTEGER NOT NULL, `productScanRequestUsed` INTEGER NOT NULL, `manualEntryRequestUsed` INTEGER NOT NULL, `adsWatched` INTEGER NOT NULL, PRIMARY KEY(`id`))")
             }
         }
     }

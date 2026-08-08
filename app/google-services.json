@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1009108859064",
+    "project_id": "calourie-ai",
+    "storage_bucket": "calourie-ai.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1009108859064:android:d136b1786586294fca5c4d",
+        "android_client_info": {
+          "package_name": "com.example.calorieapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1009108859064-em99u5ad0mmt2loqtvpm37ulimugiipe.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwh3UCNqFag_C7DX7kZCmOGM-Mwp_pSJM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1009108859064-em99u5ad0mmt2loqtvpm37ulimugiipe.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

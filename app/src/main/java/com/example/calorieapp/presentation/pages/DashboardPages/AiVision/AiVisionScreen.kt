@@ -15,6 +15,8 @@ import com.example.calorieapp.presentation.viewModel.AiVisionViewModel
 import com.example.calorieapp.presentation.components.PremiumConnectivityStatus
 import com.example.calorieapp.presentation.components.PremiumRateLimitStatus
 import com.example.calorieapp.presentation.components.CameraPermissionHandler
+import com.example.calorieapp.presentation.components.AiVisionLockedOverlay
+import com.example.calorieapp.presentation.components.PremiumRequiredDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -70,7 +72,17 @@ fun AiVisionScreen(
         ) { phase ->
             when (phase) {
                 AiVisionPhase.CAMERA -> {
-                    if (hasCameraPermission) {
+                    if (state.remainingLimits?.isAiVisionUnlocked == false) {
+                        AiVisionLockedOverlay(
+                            onUpgradeClick = { 
+                                // TODO: Navigate to Premium 
+                            },
+                            onBackClick = {
+                                viewModel.onClose()
+                                onClose()
+                            }
+                        )
+                    } else if (hasCameraPermission) {
                         CameraCapture(
                             isOffline = state.isOffline,
                             errorMessage = state.errorMessage,
@@ -138,4 +150,13 @@ fun AiVisionScreen(
         PremiumConnectivityStatus(isOffline = state.isOffline)
         PremiumRateLimitStatus(message = state.errorMessage)
     }
+
+    PremiumRequiredDialog(
+        showDialog = state.isLimitReached,
+        onDismiss = { viewModel.dismissLimitDialog() },
+        onUpgradeClick = {
+            // TODO: Navigate to Premium screen
+            viewModel.dismissLimitDialog()
+        }
+    )
 }

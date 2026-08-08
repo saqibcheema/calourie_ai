@@ -18,12 +18,27 @@ import com.example.calorieapp.ui.theme.AppTypography
 import com.example.calorieapp.ui.theme.CharcoalBlack
 import com.example.calorieapp.ui.theme.SlateGrey
 
+import com.example.calorieapp.domain.useCases.RemainingLimits
+
 @Composable
 fun NutritionSheetContent(
+    remainingLimits: RemainingLimits?,
     onScanClick: () -> Unit,
     onManualEntryClick: () -> Unit = {},
     onAiVisionClick: () -> Unit = {}
 ) {
+    val scanBadge = if (remainingLimits != null && remainingLimits.remainingBarcodeScans < 999) {
+        "${remainingLimits.remainingBarcodeScans} Left"
+    } else null
+
+    val manualBadge = if (remainingLimits != null && remainingLimits.remainingManualEntries < 999) {
+        "${remainingLimits.remainingManualEntries} Left"
+    } else null
+
+    val aiBadge = if (remainingLimits != null && remainingLimits.remainingAiVision < 999) {
+        if (remainingLimits.isAiVisionUnlocked) "${remainingLimits.remainingAiVision} Left" else "Locked"
+    } else "AI VISION"
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -52,6 +67,7 @@ fun NutritionSheetContent(
             title = "Scan Barcode",
             subtitle = "Perfect for packaged products",
             icon = Icons.Default.QrCodeScanner,
+            badgeText = scanBadge,
             onClick = onScanClick
         )
 
@@ -61,7 +77,7 @@ fun NutritionSheetContent(
             title = "Snap a Meal",
             subtitle = "Auto-detect using AI",
             icon = Icons.Default.CameraAlt,
-            badgeText = "AI VISION",
+            badgeText = aiBadge,
             onClick = onAiVisionClick
         )
 
@@ -71,6 +87,7 @@ fun NutritionSheetContent(
             title = "Manual Entry",
             subtitle = "Describe what you ate in plain text",
             icon = Icons.Default.Edit,
+            badgeText = manualBadge,
             onClick = onManualEntryClick
         )
 

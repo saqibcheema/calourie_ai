@@ -1,6 +1,6 @@
 package com.example.calorieapp.data.repository
 
-import com.example.calorieapp.BuildConfig
+import com.example.calorieapp.util.RemoteConfigHelper
 import com.example.calorieapp.data.DataSource.remote.GroqApiService
 import com.example.calorieapp.data.DataSource.remote.dto.GroqChatRequest
 import com.example.calorieapp.data.DataSource.remote.dto.GroqMessage
@@ -11,7 +11,8 @@ import javax.inject.Inject
 
 class GroqNutritionRepositoryImpl @Inject constructor(
     private val api: GroqApiService,
-    private val gson: Gson
+    private val gson: Gson,
+    private val remoteConfigHelper: RemoteConfigHelper
 ) : GroqNutritionRepository {
 
     private val systemPrompt = """
@@ -151,12 +152,13 @@ class GroqNutritionRepositoryImpl @Inject constructor(
 
     override suspend fun estimateNutrition(foodDescription: String): Result<NutritionEstimate> {
         return try {
-            val apiKey = BuildConfig.GROQ_API_KEY
+            val apiKey = remoteConfigHelper.getGroqApiKey()
             if (apiKey.isBlank()) {
                 return Result.failure(IllegalStateException("Groq API key is missing."))
             }
 
             val request = GroqChatRequest(
+                model = remoteConfigHelper.getGroqModelName(),
                 messages = listOf(
                     GroqMessage(role = "system", content = systemPrompt),
                     GroqMessage(role = "user", content = foodDescription)

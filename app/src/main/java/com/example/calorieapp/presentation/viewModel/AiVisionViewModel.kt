@@ -10,6 +10,10 @@ import com.example.calorieapp.domain.entities.Product
 import com.example.calorieapp.domain.useCases.AddMealUseCase
 import com.example.calorieapp.domain.useCases.AnalyzeFoodImageUseCase
 import com.example.calorieapp.domain.useCases.EstimateNutritionUseCase
+import com.example.calorieapp.domain.useCases.CheckDailyLimitUseCase
+import com.example.calorieapp.domain.useCases.IncrementDailyLimitUseCase
+import com.example.calorieapp.domain.useCases.GetRemainingLimitsUseCase
+import com.example.calorieapp.domain.useCases.RemainingLimits
 import com.example.calorieapp.util.ConnectivityObserver
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -67,7 +71,9 @@ data class AiVisionState(
     val loggedFoodName: String = "",
 
     val errorMessage: String? = null,
-    val isSuccess: Boolean = false
+    val isSuccess: Boolean = false,
+    val isLimitReached: Boolean = false,
+    val remainingLimits: RemainingLimits? = null
 )
 
 @HiltViewModel
@@ -75,7 +81,10 @@ class AiVisionViewModel @Inject constructor(
     private val analyzeFoodImageUseCase: AnalyzeFoodImageUseCase,
     private val estimateNutritionUseCase: EstimateNutritionUseCase,
     private val addMealUseCase: AddMealUseCase,
-    private val connectivityObserver: ConnectivityObserver
+    private val connectivityObserver: ConnectivityObserver,
+    private val checkDailyLimitUseCase: CheckDailyLimitUseCase,
+    private val incrementDailyLimitUseCase: IncrementDailyLimitUseCase,
+    private val getRemainingLimitsUseCase: GetRemainingLimitsUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AiVisionState())
@@ -83,6 +92,13 @@ class AiVisionViewModel @Inject constructor(
 
     init {
         observeConnectivity()
+        observeLimits()
+    }
+
+    private fun observeLimits() {
+        getRemainingLimitsUseCase().onEach { limits ->
+            _state.update { it.copy(remainingLimits = limits) }
+        }.launchIn(viewModelScope)
     }
 
     private fun observeConnectivity() {
@@ -103,16 +119,24 @@ class AiVisionViewModel @Inject constructor(
             return
         }
 
-        val compressed = compressBitmap(bitmap)
-        _state.update {
-            it.copy(
-                capturedBitmap = compressed,
-                phase = AiVisionPhase.ANALYZING,
-                isAnalyzing = true,
-                errorMessage = null
-            )
+        viewModelScope.launch {
+            val canScan = checkDailyLimitUseCase(CheckDailyLimitUseCase.FeatureType.AI_VISION)
+            if (!canScan) {
+                _state.update { it.copy(isLimitReached = true, errorMessage = "AI Vision is a Premium feature. Please upgrade to unlock.") }
+                return@launch
+            }
+
+            val compressed = compressBitmap(bitmap)
+            _state.update {
+                it.copy(
+                    capturedBitmap = compressed,
+                    phase = AiVisionPhase.ANALYZING,
+                    isAnalyzing = true,
+                    errorMessage = null
+                )
+            }
+            analyzePhoto(compressed)
         }
-        analyzePhoto(compressed)
     }
 
     fun retryPhoto() {
@@ -283,6 +307,7 @@ class AiVisionViewModel @Inject constructor(
             )
 
             addMealUseCase(product)
+            incrementDailyLimitUseCase(CheckDailyLimitUseCase.FeatureType.AI_VISION)
 
             // Free bitmap memory after save
             _state.value.capturedBitmap?.recycle()
@@ -370,6 +395,10 @@ class AiVisionViewModel @Inject constructor(
     fun onClose() {
         _state.value.capturedBitmap?.recycle()
         _state.update { AiVisionState() }
+    }
+    
+    fun dismissLimitDialog() {
+        _state.update { it.copy(isLimitReached = false) }
     }
 
     // ── Utilities ──────────────────────────────────────────────────────────────

@@ -1,6 +1,7 @@
 package com.example.calorieapp.presentation.pages.DashboardPages.Scanner
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.*
@@ -8,11 +9,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.calorieapp.presentation.components.BarcodeScannerView
 import com.example.calorieapp.presentation.components.CameraPermissionHandler
 import com.example.calorieapp.presentation.components.PremiumConnectivityStatus
 import com.example.calorieapp.presentation.components.PremiumRateLimitStatus
+import com.example.calorieapp.presentation.components.LimitIndicatorBadge
+import com.example.calorieapp.presentation.components.PremiumRequiredDialog
 import com.example.calorieapp.presentation.pages.DashboardPages.MealLoggedScreen
 import com.example.calorieapp.presentation.viewModel.ScanViewModel
 
@@ -70,11 +74,31 @@ fun ScannerFeatureScreen(
                         onClose()
                     }
                 )
+                
+                // Add limits badge top center
+                scanState.remainingLimits?.let { limits ->
+                    LimitIndicatorBadge(
+                        remaining = limits.remainingBarcodeScans,
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = 16.dp)
+                    )
+                }
+
                 PremiumConnectivityStatus(isOffline = scanState.isOffline)
                 PremiumRateLimitStatus(message = scanState.error)
             }
         }
     }
+
+    PremiumRequiredDialog(
+        showDialog = scanState.isLimitReached,
+        onDismiss = { scanViewModel.dismissLimitDialog() },
+        onUpgradeClick = { 
+            // TODO: Navigate to Premium screen
+            scanViewModel.dismissLimitDialog()
+        }
+    )
 
     if (scanState.isLoading) {
         Box(

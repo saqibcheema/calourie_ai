@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.ksp)
     id("com.google.dagger.hilt.android")
     kotlin("plugin.serialization") version "2.0.21"
+    alias(libs.plugins.googleServices)
 }
 
 android {
@@ -29,7 +30,6 @@ android {
         }
         buildConfigField("String", "GROQ_API_KEY", "\"${properties.getProperty("GROQ_API_KEY") ?: ""}\"")
         buildConfigField("String", "OPENROUTER_API_KEY", "\"${properties.getProperty("OPENROUTER_API_KEY") ?: ""}\"")
-        buildConfigField("String", "GEMINI_API_KEY", "\"${properties.getProperty("GEMINI_API_KEY") ?: ""}\"")
     }
 
     buildTypes {
@@ -114,4 +114,9 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-config")
 }

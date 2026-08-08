@@ -6,6 +6,8 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.calorieapp.BuildConfig
 import com.example.calorieapp.data.DataSource.local.AppDatabase
+import com.example.calorieapp.data.DataSource.local.DailyRequestsDao
+import com.example.calorieapp.data.DataSource.local.UserStatusDao
 import com.example.calorieapp.data.DataSource.local.ProductDao
 import com.example.calorieapp.data.DataSource.local.ScannedProductDao
 import com.example.calorieapp.data.DataSource.local.UserDao
@@ -20,10 +22,12 @@ import com.example.calorieapp.data.repository.BarcodeRepositoryImpl
 import com.example.calorieapp.data.repository.OpenRouterVisionRepositoryImpl
 import com.example.calorieapp.data.repository.GroqNutritionRepositoryImpl
 import com.example.calorieapp.data.repository.UserRepositoryImplementation
+import com.example.calorieapp.data.repository.LimitsRepositoryImpl
 import com.example.calorieapp.domain.repository.BarcodeRepository
 import com.example.calorieapp.domain.repository.OpenRouterVisionRepository
 import com.example.calorieapp.domain.repository.GroqNutritionRepository
 import com.example.calorieapp.domain.repository.UserRepository
+import com.example.calorieapp.domain.repository.LimitsRepository
 import com.example.calorieapp.util.ConnectivityObserver
 import com.example.calorieapp.util.NetworkConnectivityObserver
 import com.google.gson.Gson
@@ -79,7 +83,7 @@ object AppModule {
             AppDatabase::class.java,
             "calorie_app_db"
         )
-            .addMigrations(MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, AppDatabase.MIGRATION_6_7, AppDatabase.MIGRATION_7_8, AppDatabase.MIGRATION_8_9)
+            .addMigrations(MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, AppDatabase.MIGRATION_6_7, AppDatabase.MIGRATION_7_8, AppDatabase.MIGRATION_8_9, AppDatabase.MIGRATION_9_10)
             .build()
     }
 
@@ -147,14 +151,17 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideGroqApi(@ApplicationContext context: Context): GroqApiService {
+    fun provideGroqApi(
+        @ApplicationContext context: Context,
+        remoteConfigHelper: com.example.calorieapp.util.RemoteConfigHelper
+    ): GroqApiService {
         val logging = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
         val client = OkHttpClient.Builder()
             .addInterceptor(NetworkConnectionInterceptor(context))
             .addInterceptor(RateLimitInterceptor())
-            .addInterceptor(GroqAuthInterceptor(BuildConfig.GROQ_API_KEY))
+            .addInterceptor(GroqAuthInterceptor(remoteConfigHelper))
             .addInterceptor(logging)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
@@ -170,11 +177,14 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideOpenRouterApi(@ApplicationContext context : Context) : OpenRouterApiService{
+    fun provideOpenRouterApi(
+        @ApplicationContext context : Context,
+        remoteConfigHelper: com.example.calorieapp.util.RemoteConfigHelper
+    ) : OpenRouterApiService {
          val client = OkHttpClient.Builder()
             .addInterceptor(NetworkConnectionInterceptor(context))
             .addInterceptor(RateLimitInterceptor())
-            .addInterceptor(OpenRouterAuthInterceptor(BuildConfig.OPENROUTER_API_KEY))
+            .addInterceptor(OpenRouterAuthInterceptor(remoteConfigHelper))
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .build()
@@ -200,4 +210,22 @@ object AppModule {
     fun provideOpenRouterVisionRepository(
         impl: OpenRouterVisionRepositoryImpl
     ): OpenRouterVisionRepository = impl
+
+    @Provides
+    @Singleton
+    fun provideDailyRequestsDao(db: AppDatabase): DailyRequestsDao {
+        return db.dailyRequestsDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserStatusDao(db: AppDatabase): UserStatusDao {
+        return db.userStatusDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideLimitsRepository(
+        impl: LimitsRepositoryImpl
+    ): LimitsRepository = impl
 }

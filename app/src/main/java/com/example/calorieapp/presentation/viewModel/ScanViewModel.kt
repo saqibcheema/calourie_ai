@@ -4,6 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.calorieapp.domain.entities.Product
 import com.example.calorieapp.domain.useCases.AddMealUseCase
+import com.example.calorieapp.domain.useCases.CheckDailyLimitUseCase
+import com.example.calorieapp.domain.useCases.GetRemainingLimitsUseCase
+import com.example.calorieapp.domain.useCases.IncrementDailyLimitUseCase
+import com.example.calorieapp.domain.useCases.RemainingLimits
 import com.example.calorieapp.domain.useCases.ScanProductUseCase
 import com.example.calorieapp.util.ConnectivityObserver
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +23,10 @@ import javax.inject.Inject
 class ScanViewModel @Inject constructor(
     private val scanProductUseCase: ScanProductUseCase,
     private val addMealUseCase: AddMealUseCase,
-    private val connectivityObserver: ConnectivityObserver
+    private val connectivityObserver: ConnectivityObserver,
+    private val checkDailyLimitUseCase: CheckDailyLimitUseCase,
+    private val incrementDailyLimitUseCase: IncrementDailyLimitUseCase,
+    private val getRemainingLimitsUseCase: GetRemainingLimitsUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ScanState())
@@ -27,6 +34,13 @@ class ScanViewModel @Inject constructor(
 
     init {
         observeConnectivity()
+        observeLimits()
+    }
+
+    private fun observeLimits() {
+        getRemainingLimitsUseCase().onEach { limits ->
+            _state.update { it.copy(remainingLimits = limits) }
+        }.launchIn(viewModelScope)
     }
 
     private fun observeConnectivity() {
@@ -57,12 +71,19 @@ class ScanViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
+            val canScan = checkDailyLimitUseCase(CheckDailyLimitUseCase.FeatureType.PRODUCT_SCAN)
+            if (!canScan) {
+                _state.update { it.copy(isLimitReached = true, isScanning = false, error = "Daily scan limit reached. Please upgrade to Premium.") }
+                return@launch
+            }
+
             _state.update {
                 it.copy(isScanning = false, isLoading = true)
             }
 
             scanProductUseCase(barcode)
                 .onSuccess { product ->
+                    incrementDailyLimitUseCase(CheckDailyLimitUseCase.FeatureType.PRODUCT_SCAN)
                     _state.update {
                         it.copy(
                             isLoading = false,
@@ -108,6 +129,10 @@ class ScanViewModel @Inject constructor(
     fun onDismissError() {
         _state.update { it.copy(error = null) }
     }
+    
+    fun dismissLimitDialog() {
+        _state.update { it.copy(isLimitReached = false) }
+    }
 }
 
 data class ScanState(
@@ -116,5 +141,7 @@ data class ScanState(
     val scannedProduct: Product? = null,
     val isAddedToMeal: Boolean = false,
     val error: String? = null,
-    val isOffline: Boolean = false
+    val isOffline: Boolean = false,
+    val isLimitReached: Boolean = false,
+    val remainingLimits: RemainingLimits? = null
 )

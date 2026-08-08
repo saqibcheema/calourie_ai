@@ -6,11 +6,17 @@ import com.example.calorieapp.data.DataSource.remote.dto.ClarificationQuestion
 import com.example.calorieapp.data.DataSource.remote.dto.FoodItemEstimate
 import com.example.calorieapp.domain.entities.Product
 import com.example.calorieapp.domain.useCases.AddMealUseCase
+import com.example.calorieapp.domain.useCases.CheckDailyLimitUseCase
+import com.example.calorieapp.domain.useCases.IncrementDailyLimitUseCase
 import com.example.calorieapp.domain.useCases.EstimateNutritionUseCase
+import com.example.calorieapp.domain.useCases.GetRemainingLimitsUseCase
+import com.example.calorieapp.domain.useCases.RemainingLimits
 import com.example.calorieapp.domain.validation.ManualEntryValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.*
@@ -42,16 +48,31 @@ data class ManualEntryState(
     val showResults: Boolean = false,
     val loggedFoodName: String = "",                  // AI-generated display name
     val errorMessage: String? = null,
-    val isSuccess: Boolean = false
+    val isSuccess: Boolean = false,
+    val isLimitReached: Boolean = false,
+    val remainingLimits: RemainingLimits? = null
 )
 
 @HiltViewModel
 class ManualEntryViewModel @Inject constructor(
     private val addMealUseCase: AddMealUseCase,
-    private val estimateNutritionUseCase: EstimateNutritionUseCase
+    private val estimateNutritionUseCase: EstimateNutritionUseCase,
+    private val checkDailyLimitUseCase: CheckDailyLimitUseCase,
+    private val incrementDailyLimitUseCase: IncrementDailyLimitUseCase,
+    private val getRemainingLimitsUseCase: GetRemainingLimitsUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(ManualEntryState())
     val state = _state.asStateFlow()
+
+    init {
+        observeLimits()
+    }
+
+    private fun observeLimits() {
+        getRemainingLimitsUseCase().onEach { limits ->
+            _state.update { it.copy(remainingLimits = limits) }
+        }.launchIn(viewModelScope)
+    }
 
     fun onMealDescriptionChange(description: String) {
         _state.update { it.copy(mealDescription = description) }
@@ -131,6 +152,12 @@ class ManualEntryViewModel @Inject constructor(
 
     private fun estimateAndSave(validation: ManualEntryValidator.ValidationResult.Success) {
         viewModelScope.launch {
+            val canLog = checkDailyLimitUseCase(CheckDailyLimitUseCase.FeatureType.MANUAL_ENTRY)
+            if (!canLog) {
+                _state.update { it.copy(isLimitReached = true, errorMessage = "Daily manual entry limit reached. Please upgrade to Premium.") }
+                return@launch
+            }
+
             _state.update { it.copy(isLoading = true, isEstimating = true, errorMessage = null) }
             try {
                 // Build natural-language prompt with optional context
@@ -198,6 +225,7 @@ class ManualEntryViewModel @Inject constructor(
                 )
 
                 addMealUseCase(manualProduct)
+                incrementDailyLimitUseCase(CheckDailyLimitUseCase.FeatureType.MANUAL_ENTRY)
                 _state.update {
                     it.copy(
                         isLoading = false,
@@ -222,5 +250,9 @@ class ManualEntryViewModel @Inject constructor(
 
     fun dismissResults() {
         _state.update { it.copy(showResults = false, isSuccess = true) }
+    }
+    
+    fun dismissLimitDialog() {
+        _state.update { it.copy(isLimitReached = false) }
     }
 }

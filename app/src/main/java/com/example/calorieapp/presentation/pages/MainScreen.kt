@@ -49,6 +49,9 @@ import androidx.navigation.compose.rememberNavController
 import com.example.calorieapp.presentation.pages.DashboardPages.AiVision.AiVisionScreen
 import com.example.calorieapp.presentation.pages.DashboardPages.NutritionSheetContent
 import com.example.calorieapp.presentation.pages.DashboardPages.Scanner.ScannerFeatureScreen
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.calorieapp.presentation.viewModel.MainViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 private val FabDark = Color(0xFF1C1C22)
 private val NavPillBg = Color(0xFFFFFFFF)
@@ -64,16 +67,19 @@ private val navItems = listOf(
     NavItem("profile_route", Icons.Default.Person, "Profile")
 )
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    onNavigateToManualEntry: () -> Unit
+    onNavigateToManualEntry: () -> Unit,
+    mainViewModel: MainViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
     var showNutritionSheet by remember { mutableStateOf(false) }
+    val remainingLimits by mainViewModel.remainingLimits.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
 
@@ -184,6 +190,7 @@ fun MainScreen(
                 dragHandle = { BottomSheetDefaults.DragHandle() }
             ) {
                 NutritionSheetContent(
+                    remainingLimits = remainingLimits,
                     onScanClick = {
                         showNutritionSheet = false
                         navController.navigate("scanner_route")
