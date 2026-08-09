@@ -328,6 +328,7 @@ Camera-based food recognition:
 | **WheelPicker** | [WheelPicker.kt](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/presentation/components/WheelPicker.kt) | Custom scrollable wheel picker (age, height) |
 | **CustomButtons** | [CustomButtons.kt](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/presentation/components/CustomButtons.kt) | Styled action buttons |
 | **ConnectivityStatus** | [ConnectivityStatus.kt](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/presentation/components/ConnectivityStatus.kt) | Offline banner composable |
+| **LimitsUiComponents** | [LimitsUiComponents.kt](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/presentation/components/LimitsUiComponents.kt) | Premium paywall overlays and limit exhaustion dialogs |
 
 ### Dashboard Sub-Components
 

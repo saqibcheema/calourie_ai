@@ -68,6 +68,20 @@ erDiagram
         Date scannedAt
     }
 
+    user_daily_requests {
+        String date PK
+        Int visionRequestsCount
+        Int scanRequestsCount
+        Int manualRequestsCount
+    }
+
+    subscription_status {
+        String userId PK
+        Boolean isSubscribed
+        String subscriptionType
+        Long validUntil
+    }
+
     user_table ||--o{ goals_table : "has goals"
 ```
 
@@ -147,6 +161,29 @@ Key design decisions:
 | `insertScannedProduct(product)` | `suspend` | Cache a product from API (REPLACE on conflict) |
 | `getScannedProductByBarcode(barcode)` | `suspend` | Lookup cached product |
 
+### DailyRequestsDao
+> **File**: [DailyRequestsDao.kt](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/data/DataSource/local/DailyRequestsDao.kt)
+
+Manages tracking of daily API usage for free tier limits.
+
+| Method | Type | Description |
+|---|---|---|
+| `getDailyRequest(date)` | `suspend` | Fetch request counts for a specific date |
+| `insertDailyRequest(request)` | `suspend` | Insert or replace daily request record |
+| `incrementVisionRequests(date)` | `suspend` | Increment vision request counter |
+| `incrementScanRequests(date)` | `suspend` | Increment scan request counter |
+| `incrementManualRequests(date)` | `suspend` | Increment manual log request counter |
+
+### UserStatusDao
+> **File**: [UserStatusDao.kt](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/data/DataSource/local/UserStatusDao.kt)
+
+Manages the user's subscription status.
+
+| Method | Type | Description |
+|---|---|---|
+| `getSubscriptionStatus(userId)` | `suspend` | Fetch current subscription status |
+| `insertSubscriptionStatus(status)` | `suspend` | Insert or replace subscription status |
+
 ---
 
 ## Migration History
@@ -204,3 +241,19 @@ Implements `GroqNutritionRepository`. Key logic:
 - Sends the user's food description to the Groq API
 - Parses the JSON response into a `NutritionEstimate` object
 - Handles the AI clarification flow when the model needs more information
+
+### LimitsRepositoryImpl
+> **File**: [LimitsRepositoryImpl.kt](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/data/repository/LimitsRepositoryImpl.kt)
+
+Implements `LimitsRepository`. Key logic:
+- Tracks API consumption against Remote Config limits for free-tier users
+- Increments usage metrics locally in `DailyRequestsDao`
+- Exposes remaining quota to the UI layer for displaying limits
+- Prevents requests if a feature limit has been reached
+
+### SubscriptionRepositoryImpl
+> **File**: [SubscriptionRepositoryImpl.kt](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/domain/repository/SubscriptionRepository.kt)
+
+Implements `SubscriptionRepository`. Key logic:
+- Reads and updates the local user subscription status (Free vs Premium)
+- Works in tandem with `LimitsRepositoryImpl` (Premium users bypass daily limits)

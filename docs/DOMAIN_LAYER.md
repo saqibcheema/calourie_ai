@@ -73,6 +73,34 @@ Calculated during onboarding by `CalculationUtils` and persisted via `UserReposi
 
 ---
 
+### SubscriptionStatus
+> **File**: [SubscriptionStatus.kt](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/data/Models/SubscriptionStatus.kt)
+
+```kotlin
+data class SubscriptionStatus(
+    val userId: String = "local_user",
+    val isSubscribed: Boolean = false,
+    val subscriptionType: String = "free", // "free", "premium"
+    val validUntil: Long = 0L
+)
+```
+
+---
+
+### UserDailyRequest
+> **File**: [UserDailyRequest.kt](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/data/Models/UserDailyRequest.kt)
+
+```kotlin
+data class UserDailyRequest(
+    val date: String,
+    val visionRequestsCount: Int = 0,
+    val scanRequestsCount: Int = 0,
+    val manualRequestsCount: Int = 0
+)
+```
+
+---
+
 ### DailyMacrosSummary
 > **File**: [DailyMacrosSummary.kt](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/domain/entities/DailyMacrosSummary.kt)
 
@@ -128,6 +156,15 @@ All use cases live in `domain/useCases/` and follow the single-responsibility pr
 | Use Case | File | Dependency | Description |
 |---|---|---|---|
 | **GetTodayNutrimentsSummaryUseCase** | [GetTodayNutrimentsSummaryUseCase.kt](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/domain/useCases/GetTodayNutrimentsSummaryUseCase.kt) | `BarcodeRepository` | Returns aggregated macros for a given date |
+
+### Limits & Subscriptions
+
+| Use Case | File | Dependency | Description |
+|---|---|---|---|
+| **CheckDailyLimitUseCase** | [CheckDailyLimitUseCase.kt](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/domain/useCases/CheckDailyLimitUseCase.kt) | `LimitsRepository` | Checks if a feature limit has been reached |
+| **GetRemainingLimitsUseCase** | [GetRemainingLimitsUseCase.kt](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/domain/useCases/GetRemainingLimitsUseCase.kt) | `LimitsRepository` | Returns the remaining quotas for vision and scan |
+| **IncrementDailyLimitUseCase** | [IncrementDailyLimitUseCase.kt](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/domain/useCases/IncrementDailyLimitUseCase.kt) | `LimitsRepository` | Increments usage count for a specific feature |
+| **InitializeUserLimitsUseCase** | [InitializeUserLimitsUseCase.kt](file:///e:/Desktop/calourie_ai/app/src/main/java/com/example/calorieapp/domain/useCases/InitializeUserLimitsUseCase.kt) | `LimitsRepository`, `RemoteConfigHelper` | Syncs limits with Firebase and local DB |
 
 ---
 

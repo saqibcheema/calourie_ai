@@ -40,6 +40,7 @@ Calourie AI is a modern Android application designed to simplify meal tracking u
 | **Networking** | [Retrofit](https://square.github.io/retrofit/) + OkHttp + Gson |
 | **Barcode Scanner** | [ML Kit](https://developers.google.com/ml-kit/vision/barcode-scanning) + [CameraX](https://developer.android.com/jetpack/androidx/releases/camera) |
 | **AI Nutrition** | Groq API (LLaMA 3.3 70B) |
+| **Remote Config** | Firebase Remote Config |
 | **Image Loading** | [Coil](https://coil-kt.github.io/coil/) |
 | **Navigation** | [Compose Navigation](https://developer.android.com/jetpack/compose/navigation) (type-safe) |
 | **Min SDK** | API 25 (Android 7.1) |
@@ -59,14 +60,14 @@ Built with **Jetpack Compose**, the UI observes state from **ViewModels** which 
 
 ### 2. Domain Layer (Business Logic)
 The heart of the app. Contains pure business rules (UseCases) and Repository interfaces.
-- **UseCases (14)**: AddMeal, DeleteMeal, UpdateMealQuantity, ScanProduct, EstimateNutrition, AnalyzeFoodImage, SaveUserAndCalculateGoals, GetGoals, GetMealsByDate, GetTodayNutrimentsSummary, GetScanHistory, GetLoggedDates, CheckUserSession
+- **UseCases (18)**: AddMeal, DeleteMeal, UpdateMealQuantity, ScanProduct, EstimateNutrition, AnalyzeFoodImage, SaveUserAndCalculateGoals, GetGoals, GetMealsByDate, GetTodayNutrimentsSummary, GetScanHistory, GetLoggedDates, CheckUserSession, CheckDailyLimit, GetRemainingLimits, IncrementDailyLimit, InitializeUserLimits
 - **Validation**: ManualEntryValidator, CalculationUtils (BMR, TDEE)
 
 ### 3. Data Layer (Persistence & Network)
 Handles data fetching and caching. Implements the interfaces defined in the Domain layer.
-- **Repositories**: BarcodeRepositoryImpl, UserRepositoryImpl, GroqNutritionRepositoryImpl
-- **Local Source**: Room DB v6 (ProductDao, UserDao, ScannedProductDao)
-- **Remote**: OpenFoodFacts API + Groq AI API
+- **Repositories**: BarcodeRepositoryImpl, UserRepositoryImpl, GroqNutritionRepositoryImpl, LimitsRepositoryImpl, SubscriptionRepositoryImpl
+- **Local Source**: Room DB v6 (ProductDao, UserDao, ScannedProductDao, DailyRequestsDao, UserStatusDao)
+- **Remote**: OpenFoodFacts API, Groq AI API, Firebase Remote Config
 
 ---
 
@@ -101,22 +102,25 @@ flowchart TD
         UC_AI["EstimateNutrition / AnalyzeFoodImage"]:::usecase
         UC_User["SaveUser / CalculateGoals"]:::usecase
         UC_Stats["GetMealsByDate / GetLoggedDates\nGetMonthlyMacros"]:::usecase
+        UC_Limits["CheckDailyLimit / GetRemainingLimits\nIncrementDailyLimit / InitializeUserLimits"]:::usecase
         Repo_Interface{"Repository Interfaces"}:::usecase
     end
 
     subgraph Data_Layer [Data Layer]
-        Repo_Impl["BarcodeRepositoryImpl\nUserRepositoryImpl\nGroqNutritionRepositoryImpl"]:::repo
-        DAO_Room[("Room DB v6\n(Product, User, ScannedProduct)")]:::local
+        Repo_Impl["BarcodeRepositoryImpl\nUserRepositoryImpl\nGroqNutritionRepositoryImpl\nLimitsRepositoryImpl\nSubscriptionRepositoryImpl"]:::repo
+        DAO_Room[("Room DB v6\n(Product, User, ScannedProduct\nDailyRequests, UserStatus)")]:::local
         API_Food(("OpenFoodFacts (Retrofit)")):::remote
         API_Groq(("Groq AI API (LLaMA 3.3)")):::remote
+        API_Firebase(("Firebase Remote Config")):::remote
     end
 
-    VM_Main --> UC_Meal & UC_Scan & UC_AI & UC_User & UC_Stats
-    UC_Meal & UC_Scan & UC_AI & UC_User & UC_Stats --> Repo_Interface
+    VM_Main --> UC_Meal & UC_Scan & UC_AI & UC_User & UC_Stats & UC_Limits
+    UC_Meal & UC_Scan & UC_AI & UC_User & UC_Stats & UC_Limits --> Repo_Interface
     Repo_Interface -.-> Repo_Impl
     Repo_Impl --> DAO_Room
     Repo_Impl --> API_Food
     Repo_Impl --> API_Groq
+    Repo_Impl --> API_Firebase
 ```
 
 ---
@@ -162,6 +166,7 @@ app/src/main/java/com/example/calorieapp/
 - **Smart Barcode Scanning**: Uses ML Kit + CameraX to identify products and fetch nutrition data via OpenFoodFacts. Results cached locally.
 - **AI Vision Food Analysis**: Photo-based food recognition powered by Groq AI (LLaMA 3.3 70B) — point your camera at any meal.
 - **AI Manual Entry**: Log custom meals using natural language with a multi-step clarification flow for accuracy.
+- **Usage Limits & Subscriptions**: Built-in daily request limits for free tier users for scanning and AI vision, dynamically managed via Firebase Remote Config.
 - **Dynamic Dashboard**: Real-time calorie and macro tracking based on personalized daily goals. Date-aware history.
 - **Performance Statistics**: GitHub-style monthly consistency heatmap, 7-day calorie balance bar chart, and monthly macro adherence progress bars.
 - **Profile Management**: Edit physical metrics (age, weight, height), activity level, and fitness goal — goals recalculate automatically.

@@ -36,17 +36,17 @@ graph TB
 
     subgraph Domain["⚡ Domain Layer"]
         direction LR
-        UseCases["Use Cases (14)<br/>AddMeal · DeleteMeal · UpdateMealQty<br/>ScanProduct · EstimateNutrition<br/>AnalyzeFoodImage · CalculateGoals<br/>GetMealsByDate · GetMonthlyMacros · …"]
-        Entities["Entities<br/>Product · UserProfile<br/>DailyGoals · DailyMacrosSummary<br/>NutritionEstimate · FoodItemEstimate"]
-        RepoInterfaces["Repository Interfaces<br/>BarcodeRepository<br/>UserRepository<br/>GroqNutritionRepository"]
+        UseCases["Use Cases (18)<br/>AddMeal · DeleteMeal · UpdateMealQty<br/>ScanProduct · EstimateNutrition<br/>AnalyzeFoodImage · CalculateGoals<br/>CheckDailyLimit · GetRemainingLimits · …"]
+        Entities["Entities<br/>Product · UserProfile<br/>DailyGoals · DailyMacrosSummary<br/>NutritionEstimate · SubscriptionStatus"]
+        RepoInterfaces["Repository Interfaces<br/>BarcodeRepository · UserRepository<br/>GroqNutritionRepository<br/>LimitsRepository · SubscriptionRepository"]
         Validation["Validation<br/>ManualEntryValidator<br/>CalculationUtils (BMR/TDEE)"]
     end
 
     subgraph Data["💾 Data Layer"]
         direction LR
-        RepoImpls["Implementations<br/>BarcodeRepositoryImpl<br/>UserRepositoryImpl<br/>GroqNutritionRepositoryImpl"]
-        Local["Room DB (v6)<br/>ProductDao · UserDao<br/>ScannedProductDao"]
-        Remote["Remote APIs<br/>OpenFoodFacts (Retrofit)<br/>Groq AI — LLaMA 3.3 70B (Retrofit)"]
+        RepoImpls["Implementations<br/>BarcodeRepositoryImpl<br/>UserRepositoryImpl<br/>GroqNutritionRepositoryImpl<br/>LimitsRepositoryImpl · SubscriptionRepositoryImpl"]
+        Local["Room DB (v6)<br/>ProductDao · UserDao · ScannedProductDao<br/>DailyRequestsDao · UserStatusDao"]
+        Remote["Remote APIs<br/>OpenFoodFacts · Groq AI (LLaMA 3.3)<br/>Firebase Remote Config"]
         Network["Network Layer<br/>Interceptors · RateLimitException<br/>NoConnectivityException · ConnectivityObserver"]
     end
 
