@@ -4,27 +4,36 @@ import com.example.calorieapp.domain.entities.DailyGoals
 import com.example.calorieapp.domain.entities.Product
 import com.example.calorieapp.domain.entities.UserProfile
 
+// ── Issue #2 Fix: safe float parsing — no crash on decimal weight (e.g. "70.5")
+// ── Issue #6 Fix: all 3 new fields are now mapped in BOTH directions
 fun UserProfile.toUserEntity(): UserEntity {
     return UserEntity(
-        gender = this.gender,
-        age = this.age,
-        weight = this.weight.toInt(),
-        heightFeet = this.heightFeet,
-        heightInches = this.heightInches,
-        activityLevel = this.activityLevel,
-        goal = this.goal
+        gender            = this.gender,
+        age               = this.age,
+        weight            = this.weight.toFloatOrNull() ?: 0f,  // Fix #2: safe parse
+        heightFeet        = this.heightFeet,
+        heightInches      = this.heightInches,
+        activityLevel     = this.activityLevel,
+        goal              = this.goal,
+        goalPace          = this.goalPace,
+        medicalConditions = this.medicalConditions.joinToString(","),  // List → CSV string
+        pregnancyStatus   = this.pregnancyStatus
     )
 }
 
-fun UserEntity.toUserProfile(): UserProfile{
+fun UserEntity.toUserProfile(): UserProfile {
     return UserProfile(
-        gender = this.gender,
-        age = this.age,
-        weight = this.weight.toString(),
-        heightFeet = this.heightFeet,
-        heightInches = this.heightInches,
-        activityLevel = this.activityLevel,
-        goal = this.goal
+        gender            = this.gender,
+        age               = this.age,
+        weight            = this.weight.toString(),
+        heightFeet        = this.heightFeet,
+        heightInches      = this.heightInches,
+        activityLevel     = this.activityLevel,
+        goal              = this.goal,
+        goalPace          = this.goalPace,
+        medicalConditions = if (this.medicalConditions.isBlank()) emptyList()
+                            else this.medicalConditions.split(","),  // CSV → List
+        pregnancyStatus   = this.pregnancyStatus
     )
 }
 

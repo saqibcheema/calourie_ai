@@ -39,17 +39,20 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.calorieapp.presentation.pages.onboardingPages.ActivityLevel
 import com.example.calorieapp.presentation.pages.onboardingPages.AgeScreen
 import com.example.calorieapp.presentation.pages.onboardingPages.GenderScreen
+import com.example.calorieapp.presentation.pages.onboardingPages.GoalPaceScreen
 import com.example.calorieapp.presentation.pages.onboardingPages.GoalScreen
 import com.example.calorieapp.presentation.pages.onboardingPages.HeightAndWeight
+import com.example.calorieapp.presentation.pages.onboardingPages.MedicalConditionsScreen
+import com.example.calorieapp.presentation.pages.onboardingPages.PregnancyScreen
 import com.example.calorieapp.presentation.viewModel.OnBoardingViewModel
+import com.example.calorieapp.presentation.viewModel.OnboardingStep
 
 @Composable
 fun OnBoardingScreen(
     viewModel: OnBoardingViewModel = hiltViewModel(),
-    onNavigateToDashboard : () -> Unit
-){
-
-    val targetProgress = (viewModel.currentStep + 1 ).toFloat() / viewModel.totalSteps
+    onNavigateToDashboard: () -> Unit
+) {
+    val targetProgress = (viewModel.currentStep + 1).toFloat() / viewModel.totalSteps
 
     val animatedProgress by animateFloatAsState(
         targetValue = targetProgress,
@@ -57,19 +60,13 @@ fun OnBoardingScreen(
         label = "ProgressAnimation"
     )
 
-    Scaffold (
+    Scaffold(
         topBar = {
-            Column (
-                modifier = Modifier.padding(vertical = 50.dp,horizontal = 20.dp)
-            ){
-                Row (
-                    verticalAlignment = Alignment.CenterVertically
-                ){
-                    if(viewModel.currentStep > 0){
+            Column(modifier = Modifier.padding(vertical = 50.dp, horizontal = 20.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (viewModel.currentStep > 0) {
                         IconButton(
-                            onClick = {
-                                viewModel.onBack()
-                            },
+                            onClick = { viewModel.onBack() },
                             modifier = Modifier
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.surface)
@@ -80,7 +77,7 @@ fun OnBoardingScreen(
                                 contentDescription = "Go Back"
                             )
                         }
-                    }else{
+                    } else {
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
@@ -88,10 +85,9 @@ fun OnBoardingScreen(
                                 .size(40.dp)
                         )
                     }
-                    if(viewModel.currentStep != 0){
+                    if (viewModel.currentStep != 0) {
                         Spacer(modifier = Modifier.width(20.dp))
                     }
-
 
                     LinearProgressIndicator(
                         progress = { animatedProgress },
@@ -106,74 +102,100 @@ fun OnBoardingScreen(
                 }
             }
         }
-    ){paddingValues ->
-        Box(
-            modifier = Modifier.padding(paddingValues)
-        ){
+    ) { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues)) {
             AnimatedContent(
                 targetState = viewModel.currentStep,
                 label = "OnboardingTransition",
                 modifier = Modifier.fillMaxSize(),
                 transitionSpec = {
                     if (targetState > initialState) {
-                        (slideInHorizontally(animationSpec = tween(400, easing = EaseInOutQuart)) { it } + fadeIn(tween(300)))
-                            .togetherWith(slideOutHorizontally(animationSpec = tween(400, easing = EaseInOutQuart)) { -it } + fadeOut(tween(300)))
+                        (slideInHorizontally(animationSpec = tween(400, easing = EaseInOutQuart)) { it } +
+                                fadeIn(tween(300)))
+                            .togetherWith(
+                                slideOutHorizontally(animationSpec = tween(400, easing = EaseInOutQuart)) { -it } +
+                                        fadeOut(tween(300))
+                            )
                     } else {
-                        (slideInHorizontally(animationSpec = tween(400, easing = EaseInOutQuart)) { -it } + fadeIn(tween(300)))
-                            .togetherWith(slideOutHorizontally(animationSpec = tween(400, easing = EaseInOutQuart)) { it } + fadeOut(tween(300)))
+                        (slideInHorizontally(animationSpec = tween(400, easing = EaseInOutQuart)) { -it } +
+                                fadeIn(tween(300)))
+                            .togetherWith(
+                                slideOutHorizontally(animationSpec = tween(400, easing = EaseInOutQuart)) { it } +
+                                        fadeOut(tween(300))
+                            )
                     }
                 }
             ) { targetStep ->
-                Box(modifier = Modifier.fillMaxSize().systemBarsPadding()) {
-                    when(targetStep){
-                        0-> GenderScreen(
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .systemBarsPadding()
+                ) {
+                    when (viewModel.getScreenForStep(targetStep)) {
+
+                        OnboardingStep.GENDER -> GenderScreen(
                             selectedGender = viewModel.gender,
-                            onGenderSelected = {
-                                viewModel.gender = it
-                            },
-                            onContinue = {
-                                viewModel.onNext()
-                            }
+                            onGenderSelected = { viewModel.gender = it },
+                            onContinue = { viewModel.onNext() }
                         )
-                        1-> AgeScreen(
-                            onAgeSelected = {
-                                viewModel.age = it.toInt()
-                            },
-                            onContinue = {
-                                viewModel.onNext()
-                            }
+
+                        OnboardingStep.AGE -> AgeScreen(
+                            onAgeSelected = { viewModel.age = it.toInt() },
+                            onContinue = { viewModel.onNext() }
                         )
-                        2-> HeightAndWeight(
-                            onFeetSelected = {
-                                viewModel.feetForHeight = it
-                            },
-                            onInchesSelected = {
-                                viewModel.inchesForHeight = it
-                            },
-                            onWeightSelected = {
-                                viewModel.weight = it
-                            },
-                            onContinue = {
-                                viewModel.onNext()
-                            }
+
+                        OnboardingStep.BODY -> HeightAndWeight(
+                            onFeetSelected = { viewModel.feetForHeight = it },
+                            onInchesSelected = { viewModel.inchesForHeight = it },
+                            onWeightSelected = { viewModel.weight = it },
+                            onContinue = { viewModel.onNext() }
                         )
-                        3-> ActivityLevel(
+
+                        OnboardingStep.ACTIVITY -> ActivityLevel(
                             selectedActivity = viewModel.activityLevel,
-                            onActivitySelected = {
-                                viewModel.activityLevel = it
-                            },
+                            onActivitySelected = { viewModel.activityLevel = it },
+                            onContinue = { viewModel.onNext() }
+                        )
+
+                        OnboardingStep.GOAL -> GoalScreen(
+                            selectedGoal = viewModel.goal,
+                            onGoalSelected = { viewModel.goal = it },
+                            onContinue = { viewModel.onNext() }
+                        )
+
+                        // ── NEW: Goal Pace (shown only when goal != Maintain) ──
+                        OnboardingStep.GOAL_PACE -> GoalPaceScreen(
+                            selectedPace = viewModel.goalPace,
+                            goal = viewModel.goal,
+                            onPaceSelected = { viewModel.goalPace = it },
+                            onContinue = { viewModel.onNext() }
+                        )
+
+                        // ── NEW: Medical Conditions (always shown) ─────────────
+                        OnboardingStep.MEDICAL -> MedicalConditionsScreen(
+                            selectedConditions = viewModel.medicalConditions,
+                            onConditionsChanged = { viewModel.medicalConditions = it },
                             onContinue = {
-                                viewModel.onNext()
+                                // Issue #8 Fix: Male users finish here — must pass navigate callback
+                                if (viewModel.gender.equals("Female", ignoreCase = true)) {
+                                    viewModel.onNext()          // goes to Pregnancy screen
+                                } else {
+                                    viewModel.onNext(onNavigateToDashboard)  // done!
+                                }
                             }
                         )
-                        4-> GoalScreen(
-                            selectedGoal = viewModel.goal,
-                            onGoalSelected = {
-                                viewModel.goal = it
+
+                        // ── NEW: Pregnancy (shown only for Female) ────────────
+                        OnboardingStep.PREGNANCY -> PregnancyScreen(
+                            selectedStatus = viewModel.pregnancyStatus,
+                            onStatusSelected = {
+                                viewModel.pregnancyStatus = it
+                                // Issue #9 Fix: Pregnancy → force goal to Maintain for safety
+                                if (it != "None") {
+                                    viewModel.goal = "Maintain"
+                                }
                             },
-                            onContinue = {
-                                viewModel.onNext(onNavigateToDashboard)
-                            },
+                            onContinue = { viewModel.onNext(onNavigateToDashboard) }
                         )
                     }
                 }

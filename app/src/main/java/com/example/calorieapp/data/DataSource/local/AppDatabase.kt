@@ -15,7 +15,7 @@ import com.example.calorieapp.data.Models.*
         UserDailyRequest::class
         // WeightHistoryEntity removed — migrated out in v9
     ],
-    version = 10,
+    version = 11,           // Fix #5: bumped from 10 → 11
     exportSchema = false
 )
 @TypeConverters(DateConverter::class)
@@ -51,6 +51,44 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("CREATE TABLE IF NOT EXISTS `subscription_status` (`id` INTEGER NOT NULL, `tierType` TEXT NOT NULL, `expiryDate` TEXT NOT NULL, `token` TEXT, PRIMARY KEY(`id`))")
                 db.execSQL("CREATE TABLE IF NOT EXISTS `user_daily_request` (`id` INTEGER NOT NULL, `currentDate` TEXT NOT NULL, `aiVisionRequestUsed` INTEGER NOT NULL, `productScanRequestUsed` INTEGER NOT NULL, `manualEntryRequestUsed` INTEGER NOT NULL, `adsWatched` INTEGER NOT NULL, PRIMARY KEY(`id`))")
+            }
+        }
+
+        val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Fix #1: Add 3 new columns with safe defaults for existing rows
+                db.execSQL("ALTER TABLE user_table ADD COLUMN goalPace TEXT NOT NULL DEFAULT 'Moderate'")
+                db.execSQL("ALTER TABLE user_table ADD COLUMN medicalConditions TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE user_table ADD COLUMN pregnancyStatus TEXT NOT NULL DEFAULT 'None'")
+
+                // Fix #3: Migrate weight column from INTEGER → REAL (SQLite rename+recreate trick)
+                // Step 1: Create new table with weight as REAL
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS user_table_new (
+                        `id` INTEGER NOT NULL,
+                        `gender` TEXT NOT NULL,
+                        `age` INTEGER NOT NULL,
+                        `weight` REAL NOT NULL,
+                        `heightFeet` INTEGER NOT NULL,
+                        `heightInches` INTEGER NOT NULL,
+                        `activityLevel` TEXT NOT NULL,
+                        `goal` TEXT NOT NULL,
+                        `goalPace` TEXT NOT NULL DEFAULT 'Moderate',
+                        `medicalConditions` TEXT NOT NULL DEFAULT '',
+                        `pregnancyStatus` TEXT NOT NULL DEFAULT 'None',
+                        PRIMARY KEY(`id`)
+                    )
+                """.trimIndent())
+                // Step 2: Copy existing data (weight cast to REAL automatically)
+                db.execSQL("""
+                    INSERT INTO user_table_new 
+                    SELECT id, gender, age, CAST(weight AS REAL), heightFeet, heightInches,
+                           activityLevel, goal, 'Moderate', '', 'None'
+                    FROM user_table
+                """.trimIndent())
+                // Step 3: Drop old table, rename new one
+                db.execSQL("DROP TABLE user_table")
+                db.execSQL("ALTER TABLE user_table_new RENAME TO user_table")
             }
         }
     }
